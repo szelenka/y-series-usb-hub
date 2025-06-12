@@ -563,11 +563,14 @@ void test_perform_rotate_backward_duration() {
     When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*))).AlwaysDo([](const char* str) { 
         return strlen(str) + 1; 
     });
-    When(Method(audioPlayerMock, play)).AlwaysReturn();
+    When(Method(audioPlayerMock, play)).AlwaysReturn(true);
+    When(Method(audioPlayerMock, isPlaying)).AlwaysReturn(false);
+    When(Method(audioPlayerMock, stop)).AlwaysReturn();
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
     When(OverloadedMethod(ArduinoFake(), random, long(long, long))).AlwaysDo([](long min, long max) {
         return min; // Return minimum speed for consistent testing
     });
+    When(Method(ArduinoFake(), millis)).AlwaysReturn(0);
     
     // Create animation object
     Animation animation(

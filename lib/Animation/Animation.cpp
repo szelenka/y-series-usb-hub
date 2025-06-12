@@ -64,15 +64,16 @@ void Animation::setRotationDirection() {
         m_motorDirection *= -1;
         m_randomRotateTimer = 0;  // Reset the rotation timer
         
-        m_logger.print("Sensor triggered, reversing direction to %s",
+        m_logger.debug("Sensor triggered, reversing direction to %s",
                        m_motorDirection == MotorDirection::Forward ? "Forward" : "Backward");
         return;
     }
 
     // If no sensor is triggered, handle random direction changes
     if (m_randomRotateTimer == 0) {
-        const uint32_t timeSinceLeft = m_currentTime - m_lastLeftTurnTime;
-        const uint32_t timeSinceRight = m_currentTime - m_lastRightTurnTime;
+        // Random direction selection with bias based on time since last turn
+        uint32_t timeSinceLeft = m_currentTime - m_lastLeftTurnTime;
+        uint32_t timeSinceRight = m_currentTime - m_lastRightTurnTime;
 
         // Calculate direction bias based on time since last turn in each direction
         float leftBias = AnimationConstants::kNormalBias;
@@ -92,28 +93,28 @@ void Animation::setRotationDirection() {
         }
 
         // Weighted random direction selection
-        const float totalBias = leftBias + rightBias;
-        const float randomValue = random(0, 1000) / 1000.0f * totalBias;
-        
+        float total = leftBias + rightBias;
+        float randomValue = random(0, 1000) / 1000.0f * total;
+
         if (randomValue < leftBias) {
             m_motorDirection = MotorDirection::Forward;
             m_lastLeftTurnTime = m_currentTime;
-            m_logger.print("Random direction chosen: Forward (bias=%.1f)", leftBias);
+            m_logger.debug("Random direction chosen: Forward (bias=%.1f)", leftBias);
         } else {
             m_motorDirection = MotorDirection::Backward;
             m_lastRightTurnTime = m_currentTime;
-            m_logger.print("Random direction chosen: Backward (bias=%.1f)", rightBias);
+            m_logger.debug("Random direction chosen: Backward (bias=%.1f)", rightBias);
         }
 
         // Set timer for next direction change
         m_randomRotateTimer = m_currentTime + 
             random(AnimationConstants::kMinRotateInterval, AnimationConstants::kMaxRotateInterval);
-        m_logger.print("Direction timer set for %dms", m_randomRotateTimer - m_currentTime);
+        m_logger.debug("Direction timer set for %dms", m_randomRotateTimer - m_currentTime);
     }
 
     // Check if it's time to change direction
     if (m_currentTime >= m_randomRotateTimer) {
-        m_logger.print("Direction timer expired");
+        m_logger.debug("Direction timer expired");
         m_randomRotateTimer = 0;  // Will trigger direction change in next call
     }
 }
@@ -145,7 +146,7 @@ void Animation::handlePirTriggered() {
     // Play sound effect when motion is first detected
     if (m_lastPIRState != HIGH) {
         m_audioPlayer->play(0);  // Play motion detected sound
-        m_logger.print("Motion detected, starting rotation");
+        m_logger.info("Motion detected, starting rotation");
     }
     
     // Reset the inactivity timer
@@ -178,8 +179,8 @@ void Animation::handlePirTriggered() {
     
     rotate(static_cast<uint8_t>(randomSpeed), m_motorDirection);
     
-    m_logger.print("Motor speed: %d (bias=%.2f, duration=%dms)", 
-                   randomSpeed, speedBias, directionDuration);
+    m_logger.debug("Motor speed: %d (bias=%.2f, duration=%dms)", 
+                  randomSpeed, speedBias, directionDuration);
 }
 
 /**
@@ -188,7 +189,7 @@ void Animation::handlePirTriggered() {
 void Animation::handlePirInactive() {
     // Update state if we just transitioned from active to inactive
     if (m_lastPIRState == HIGH) {
-        m_logger.print("Motion no longer detected, starting inactivity timer");
+        m_logger.info("Motion no longer detected, starting inactivity timer");
     }
     m_lastPIRState = LOW;
     
@@ -198,8 +199,8 @@ void Animation::handlePirInactive() {
         if (m_motorDirection != MotorDirection::Stop) {
             m_audioPlayer->play(1);  // Play motion stopped sound
             stop();
-            m_logger.print("Stopping motor after %dms of inactivity", 
-                           AnimationConstants::kInactivityTimeout);
+            m_logger.info("Stopping motor after %dms of inactivity", 
+                         AnimationConstants::kInactivityTimeout);
         }
     }
 }
@@ -210,7 +211,7 @@ void Animation::eyeBlink()
         if (!m_isRainbowActive) {
             m_rainbowIndex = 0;
             m_rainbowTimer = m_currentTime;
-            m_logger.print("Starting rainbow animation");
+            m_logger.debug("Starting rainbow animation");
         }
         m_isRainbowActive = true;
     } else {
@@ -259,7 +260,7 @@ void Animation::updateRainbow()
         
         m_pixels->show();
         m_rainbowIndex = (m_rainbowIndex + 1) % 256;
-        m_logger.print("Rainbow update: index=%d", m_rainbowIndex);
+        m_logger.debug("Rainbow update: index=%d", m_rainbowIndex);
     }
 }
 
