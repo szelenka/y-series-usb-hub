@@ -66,12 +66,6 @@ void Logger::log(LogLevel level, const char* format, va_list args) const
     char message[MAX_LOG_LENGTH] = {0};
     int written = vsnprintf(message, sizeof(message), format, args);
 
-    // Debug: Check for buffer overflow
-    if (written >= static_cast<int>(sizeof(message)))
-    {
-        cout << "[WARNING] Logger::log - Message truncated" << endl;
-    }
-
     // Actual log output
     if (m_serial)
     {

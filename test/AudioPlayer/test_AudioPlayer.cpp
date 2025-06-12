@@ -346,6 +346,79 @@ void test_play_random_sound_generates_valid_index()
     }
 }
 
+void test_constructor_with_null()
+{
+    std::cout << "  Running test_constructor_with_null()" << std::endl;
+
+    // Create mock object
+    Mock<ROMBackgroundAudioWAV> playerMock;
+    
+    // Set up expectation that begin() will be called
+    When(Method(playerMock, begin)).AlwaysReturn(true);
+    
+    // Create AudioPlayer - should not call begin() on the player
+    AudioPlayer player(nullptr);
+
+    player.stop();
+    player.update();
+    
+    // Verify begin() was not called
+    Verify(Method(playerMock, begin)).Never();
+}
+
+void test_play_invalid_write()
+{
+    std::cout << "  Running test_play_invalid_write()" << std::endl;
+
+    // Create mock object
+    Mock<ROMBackgroundAudioWAV> playerMock;
+    
+    // Set up mock behavior
+    When(Method(playerMock, flush)).AlwaysReturn();
+    When(Method(playerMock, begin)).AlwaysReturn(true);
+    When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t))).AlwaysReturn(0);
+    
+    // Create AudioPlayer and set initial state
+    AudioPlayer player(&playerMock.get());
+    bool result = player.play(1); // Set state to Playing
+    TEST_ASSERT_FALSE(result);
+    
+    // Call stop()
+    player.stop();
+    
+    // Verify flush() was called
+    Verify(Method(playerMock, flush)).Once();
+    
+    // Verify state was updated to Stopped
+    TEST_ASSERT_EQUAL(WAVState::Stopped, player.getState());
+    TEST_ASSERT_EQUAL(-1, player.getCurrentSoundIndex());
+}
+
+void test_play_random_sound_with_sounds()
+{
+    std::cout << "  Running test_play_random_sound_with_sounds()" << std::endl;
+
+    // Create mock object
+    Mock<ROMBackgroundAudioWAV> playerMock;
+    
+    // Set up mock behavior
+    When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t))).Return(1);
+    When(Method(playerMock, begin)).AlwaysReturn(true);
+    
+    // Mock random to return specific value
+    When(OverloadedMethod(ArduinoFake(), random, long(long, long)))
+        .AlwaysReturn(2); // Return index 2
+    
+    // Create AudioPlayer
+    AudioPlayer player(&playerMock.get());
+    
+    // Play random sound - should succeed
+    TEST_ASSERT_TRUE(player.playRandomSound());
+    
+    // Verify play was called with index 2
+    TEST_ASSERT_EQUAL(2, player.getCurrentSoundIndex());
+}
+
 void test_destructor_and_copy_prevention()
 {
     std::cout << "  Running test_destructor_and_copy_prevention()" << std::endl;
@@ -388,15 +461,30 @@ void test_destructor_and_copy_prevention()
 void runAudioPlayerTests()
 {
     UNITY_BEGIN();
+    // Original tests
     RUN_TEST(test_audio_player_play);
     RUN_TEST(test_audio_player_stop);
     RUN_TEST(test_audio_player_update);
     RUN_TEST(test_audio_player_random_sound);
+    
+    // Constructor and initialization tests
     RUN_TEST(test_constructor_initialization);
+    RUN_TEST(test_constructor_with_null);
+    
+    // Playback control tests
     RUN_TEST(test_play_stops_current_playback);
     RUN_TEST(test_stop_behavior);
+    
+    // State transition tests
     RUN_TEST(test_update_transitions_to_stopped_when_playback_finishes);
+    RUN_TEST(test_play_invalid_write);
+    
+    // Random sound tests
     RUN_TEST(test_play_random_sound_generates_valid_index);
+    RUN_TEST(test_play_random_sound_with_sounds);
+    
+    // Special cases
     RUN_TEST(test_destructor_and_copy_prevention);
+    
     UNITY_END();
 }
