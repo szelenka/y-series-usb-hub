@@ -17,8 +17,7 @@ enum class LogLevel : uint8_t
     INFO,      ///< General operational messages
     WARNING,   ///< Indicates potential issues
     ERROR,     ///< Error conditions that might still allow the application to continue
-    CRITICAL,  ///< Critical conditions that prevent normal operation
-    NONE       ///< No logging
+    CRITICAL   ///< Critical conditions that prevent normal operation
 };
 
 /**

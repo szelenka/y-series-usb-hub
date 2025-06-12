@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
 #include <Adafruit_SleepyDog.h>
 #include <BackgroundAudioWAV.h>
@@ -6,20 +7,19 @@
 
 #include "Animation.h"
 #include "AnimationInputs.h"
-#include "Arduino.h"
 
 // https://github.com/adafruit/Adafruit-KB2040-PCB/blob/main/Adafruit%20KB2040%20Pinout.pdf
-#define PIN_NECK_MOTOR_IN1 6
-#define PIN_NECK_MOTOR_IN2 5
-#define PIN_AUDIO_OUT 7
-#define PIN_EYE_NEOPIXEL 8
-#define PIN_DOME_LED_GREEN 9
-#define PIN_DOME_LED_BLUE 10
-#define PIN_SENSOR_LEFT 11
-#define PIN_SENSOR_RIGHT 12
-#define PIN_PIR_SENSOR 13
-#define PIN_BUTTON_RECTANGLE 14
-#define PIN_BUTTON_CIRCLE 15
+#define PIN_NECK_MOTOR_IN1      26 // A0
+#define PIN_NECK_MOTOR_IN2      27 // A1
+#define PIN_AUDIO_OUT           29 // A3
+#define PIN_EYE_NEOPIXEL        5  // 5
+#define PIN_DOME_LED_GREEN      2  // 2
+#define PIN_DOME_LED_BLUE       2  // 2
+#define PIN_SENSOR_LEFT         3  // 3
+#define PIN_SENSOR_RIGHT        4  // 4
+#define PIN_PIR_SENSOR          6  // 6
+#define PIN_BUTTON_RECTANGLE    7  // 7
+#define PIN_BUTTON_CIRCLE       8  // 8
 
 #define NUMPIXELS 17
 #define NEOPIXEL_BRIGHTNESS 50

@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#include "AnimationPins.h"
+
 struct AnimationInputs
 {
     int8_t sensorLeft;

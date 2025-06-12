@@ -6,8 +6,8 @@
 #ifndef Y_SERIES_USB_HUB_ANIMATION_H
 #define Y_SERIES_USB_HUB_ANIMATION_H
 
-#include <Adafruit_NeoPixel.h>
 #include <Arduino.h>
+#include <Adafruit_NeoPixel.h>
 #include <AudioPlayer.h>
 #include <Logger.h>
 
