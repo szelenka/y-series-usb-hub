@@ -1,0 +1,19 @@
+# Ignore everything
+/*
+
+# Include only what we need
+!/.git
+!/lib
+!/test
+!/platformio.ini
+!/Makefile
+
+# But ignore these
+.git
+.gitignore
+.pio
+.vscode
+.idea
+*.egg-info/
+.installed.cfg
+*.egg

@@ -1,0 +1,7 @@
+# Ignore generated files and third-party code
+.pio/
+lib/ArduinoFake/
+lib/Unity/
+*.pb.*
+*.pb.h
+*.pb.cc

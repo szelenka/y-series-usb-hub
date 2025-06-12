@@ -1,0 +1,23 @@
+---
+# Based on Google style with some customizations
+BasedOnStyle: Google
+Language: Cpp
+Standard: c++17
+
+# Customizations
+IndentWidth: 4
+ColumnLimit: 100
+UseTab: Never
+TabWidth: 4
+BreakBeforeBraces: Allman
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: true
+PointerAlignment: Left
+AccessModifierOffset: -4
+
+# Don't sort includes
+SortIncludes: false
+
+# Don't format generated files
+DisableFormat: true
+...
