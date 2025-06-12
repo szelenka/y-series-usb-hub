@@ -145,7 +145,7 @@ void Animation::performRotate() {
 void Animation::handlePirTriggered() {
     // Play sound effect when motion is first detected
     if (m_lastPIRState != HIGH) {
-        m_audioPlayer->play(0);  // Play motion detected sound
+        m_audioPlayer->play(5);  // Play motion detected sound
         m_logger.info("Motion detected, starting rotation");
     }
     
@@ -197,7 +197,7 @@ void Animation::handlePirInactive() {
     if (m_currentTime - m_lastPIRTimer >= AnimationConstants::kInactivityTimeout) {
         // Only stop if we're not already stopped
         if (m_motorDirection != MotorDirection::Stop) {
-            m_audioPlayer->play(1);  // Play motion stopped sound
+            m_audioPlayer->play(11);  // Play motion stopped sound
             stop();
             m_logger.info("Stopping motor after %dms of inactivity", 
                          AnimationConstants::kInactivityTimeout);

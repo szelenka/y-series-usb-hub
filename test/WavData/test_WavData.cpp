@@ -21,9 +21,9 @@ void test_wav_data_pointers()
 void test_wav_data_sizes()
 {
     // Test that each WAV file has a valid size
-    TEST_ASSERT_GREATER_THAN(0, sound1_size);
-    TEST_ASSERT_GREATER_THAN(0, sound2_size);
-    TEST_ASSERT_GREATER_THAN(0, sound3_size);
+    TEST_ASSERT_GREATER_THAN(0, wav_chat_01_size);
+    TEST_ASSERT_GREATER_THAN(0, wav_chat_02_size);
+    TEST_ASSERT_GREATER_THAN(0, wav_excited_03_size);
 }
 
 void runWavDataTests() {

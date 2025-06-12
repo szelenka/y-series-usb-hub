@@ -99,3 +99,28 @@ test-local:
 
 build:
 	pio run -e kb2040
+
+# Python virtual environment setup
+.venv: .scripts/requirements.txt
+	@echo "[PYTHON] Setting up Python virtual environment..."
+	python3 -m venv .venv
+	.venv/bin/pip install --upgrade pip
+	.venv/bin/pip install -r .scripts/requirements.txt
+	@touch .venv
+
+# Convert WAV file to C++ array
+# Usage: make wav-to-cpp WAV_FILE=path/to/input.wav [ARRAY_NAME=my_sound]
+wav-to-cpp: .venv
+	@if [ -z "$(WAV_FILE)" ]; then \
+		echo "Error: WAV_FILE is not set. Usage: make wav-to-cpp WAV_FILE=path/to/input.wav [ARRAY_NAME=my_sound]"; \
+		exit 1; \
+	fi
+	@echo "[WAV2CPP] Converting $(WAV_FILE) to C++ array..."
+	@OUTPUT_CPP="lib/WavData/"; \
+	.venv/bin/python .scripts/wav_to_cpp.py "$(WAV_FILE)" \
+		-o "$$OUTPUT_CPP" 
+	@echo "[WAV2CPP] Conversion complete! Output: $$OUTPUT_CPP"
+
+# Clean Python virtual environment
+clean-python:
+	rm -rf .venv
