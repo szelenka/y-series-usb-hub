@@ -152,7 +152,7 @@ void test_perform_rotate() {
     When(OverloadedMethod(ArduinoFake(), random, long(long, long))).AlwaysDo([](long min, long max) {
         return 200; // Return a speed value
     });
-    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return; });
+    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return true; });
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
     // Create animation object
     Animation i(
@@ -197,7 +197,7 @@ void test_set_rotation_direction_with_sensor_trip() {
     When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*))).AlwaysDo([](const char* str) { return strlen(str); });
     When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*))).AlwaysDo([](const char* str) { return strlen(str) + 1; });
     // random not needed for this test
-    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return; });
+    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return true; });
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
 
     Animation i(
@@ -251,7 +251,7 @@ void test_perform_rotate_pir_not_triggered_no_timeout() {
 
     When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*))).AlwaysDo([](const char* str) { return strlen(str); });
     When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*))).AlwaysDo([](const char* str) { return strlen(str) + 1; });
-    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return; });
+    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return true; });
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
 
     Animation i(
@@ -296,7 +296,7 @@ void test_perform_rotate_pir_not_triggered_timeout() {
 
     When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*))).AlwaysDo([](const char* str) { return strlen(str); });
     When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*))).AlwaysDo([](const char* str) { return strlen(str) + 1; });
-    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return; });
+    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return true; });
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
 
     Animation i(
@@ -343,7 +343,7 @@ void test_eyeBlink() {
     When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*))).AlwaysDo([](const char* str) { return strlen(str) + 1; });
     When(Method(pixelsMock, clear)).AlwaysReturn();
     When(Method(pixelsMock, show)).AlwaysReturn();
-    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return; });
+    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return true; });
 
     Animation i(
         streamPtr,
@@ -457,7 +457,7 @@ void test_updateRainbow() {
     When(Method(pixelsMock, setPixelColor)).AlwaysReturn();
     When(Method(pixelsMock, show)).AlwaysReturn();
     When(Method(pixelsMock, numPixels)).AlwaysReturn(3);
-    When(Method(audioPlayerMock, play)).AlwaysDo([](int id) { return; });
+    When(Method(audioPlayerMock, play)).AlwaysDo([](int id) { return true; });
 
     Animation i(
         streamPtr,

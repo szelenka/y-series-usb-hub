@@ -22,13 +22,13 @@ void test_audio_player_play()
     Mock<ROMBackgroundAudioWAV> playerMock;
     
     // Mock player methods
-    When(OverloadedMethod(playerMock, write, void(const uint8_t*, size_t)))
+    When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t)))
         .Do([](const uint8_t* data, size_t size) {
-            return;
+            return 1;
         });
-    When(OverloadedMethod(playerMock, write, void(uint8_t)))
+    When(OverloadedMethod(playerMock, write, size_t(uint8_t)))
         .Do([](uint8_t c) {
-            return;
+            return 1;
         });
     When(Method(playerMock, playing))
         .Do([]() {
@@ -40,7 +40,7 @@ void test_audio_player_play()
         });
     When(Method(playerMock, begin))
         .Do([]() {
-            return;  // Mock begin
+            return true;  // Mock begin
         });
 
     // Create audio player
@@ -70,13 +70,13 @@ void test_audio_player_stop()
     Mock<ROMBackgroundAudioWAV> playerMock;
     
     // Mock player methods
-    When(OverloadedMethod(playerMock, write, void(const uint8_t*, size_t)))
+    When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t)))
         .Do([](const uint8_t* data, size_t size) {
-            return;
+            return 1;
         });
-    When(OverloadedMethod(playerMock, write, void(uint8_t)))
+    When(OverloadedMethod(playerMock, write, size_t(uint8_t)))
         .Do([](uint8_t c) {
-            return;
+            return 1;
         });
     When(Method(playerMock, playing))
         .Do([]() {
@@ -88,7 +88,7 @@ void test_audio_player_stop()
         });
     When(Method(playerMock, begin))
         .Do([]() {
-            return;  // Mock begin
+            return true;  // Mock begin
         });
     
     // Create audio player
@@ -113,13 +113,13 @@ void test_audio_player_update()
     Mock<ROMBackgroundAudioWAV> playerMock;
     
     // Mock player methods
-    When(OverloadedMethod(playerMock, write, void(const uint8_t*, size_t)))
+    When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t)))
         .Do([](const uint8_t* data, size_t size) {
-            return;
+            return 1;
         });
-    When(OverloadedMethod(playerMock, write, void(uint8_t)))
+    When(OverloadedMethod(playerMock, write, size_t(uint8_t)))
         .Do([](uint8_t c) {
-            return;
+            return 1;
         });
     When(Method(playerMock, playing))
         .Do([]() {
@@ -131,7 +131,7 @@ void test_audio_player_update()
         });
     When(Method(playerMock, begin))
         .Do([]() {
-            return;  // Mock begin
+            return true;  // Mock begin
         });
     
     // Create audio player
@@ -156,13 +156,13 @@ void test_audio_player_random_sound()
     Mock<ROMBackgroundAudioWAV> playerMock;
     
     // Mock player methods
-    When(OverloadedMethod(playerMock, write, void(const uint8_t*, size_t)))
+    When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t)))
         .Do([](const uint8_t* data, size_t size) {
-            return;
+            return 1;
         });
-    When(OverloadedMethod(playerMock, write, void(uint8_t)))
+    When(OverloadedMethod(playerMock, write, size_t(uint8_t)))
         .Do([](uint8_t c) {
-            return;
+            return 1;
         });
     When(Method(playerMock, playing))
         .Do([]() {
@@ -174,7 +174,7 @@ void test_audio_player_random_sound()
         });
     When(Method(playerMock, begin))
         .Do([]() {
-            return;  // Mock begin
+            return true;  // Mock begin
         });
     
     // Create audio player
