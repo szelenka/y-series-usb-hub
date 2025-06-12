@@ -6,48 +6,52 @@
 #ifndef Y_SERIES_USB_HUB_ANIMATION_H
 #define Y_SERIES_USB_HUB_ANIMATION_H
 
-#include <cstdint>
-#include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
-#include <Logger.h>
+#include <Arduino.h>
 #include <AudioPlayer.h>
-#include "AnimationPins.h"
+#include <Logger.h>
+
+#include <cstdint>
+
 #include "AnimationInputs.h"
+#include "AnimationPins.h"
 
 /**
  * @brief Animation timing and control constants
  */
-namespace AnimationConstants {
-    // Motor control
-    constexpr uint8_t kMaxMotorSpeed = 255;           ///< Maximum allowed motor speed (0-255)
-    constexpr uint8_t kMinSpeed = 80;                 ///< Minimum motor speed for operation
-    constexpr uint32_t kSpeedRampTime = 2000;         ///< Time (ms) to ramp speed up/down
-    
-    // Rotation timing
-    constexpr uint32_t kMinRotateInterval = 500;      ///< Minimum time (ms) between direction changes
-    constexpr uint32_t kMaxRotateInterval = 1000;     ///< Maximum time (ms) between direction changes
-    constexpr uint32_t kMinDirectionTime = 200;       ///< Min time (ms) before considering direction change
-    constexpr uint32_t kMaxDirectionTime = 2000;      ///< Time (ms) after which direction is strongly preferred
-    
-    // PIR sensor timing
-    constexpr uint32_t kPirTimeout = 30000;           ///< Time (ms) after PIR trigger before stopping
-    constexpr uint32_t kInactivityTimeout = 30000;    ///< Time (ms) of inactivity before stopping
-    
-    // Direction bias
-    constexpr float kNormalBias = 1.0f;               ///< Base direction bias
-    constexpr float kStrongBias = 2.0f;               ///< Bias when recently turned in a direction
-    constexpr float kStrongerBias = 3.0f;             ///< Bias when it's been a long time since turning
-       
-} // namespace AnimationConstants
+namespace AnimationConstants
+{
+// Motor control
+constexpr uint8_t kMaxMotorSpeed = 255;    ///< Maximum allowed motor speed (0-255)
+constexpr uint8_t kMinSpeed = 80;          ///< Minimum motor speed for operation
+constexpr uint32_t kSpeedRampTime = 2000;  ///< Time (ms) to ramp speed up/down
 
+// Rotation timing
+constexpr uint32_t kMinRotateInterval = 500;   ///< Minimum time (ms) between direction changes
+constexpr uint32_t kMaxRotateInterval = 1000;  ///< Maximum time (ms) between direction changes
+constexpr uint32_t kMinDirectionTime = 200;  ///< Min time (ms) before considering direction change
+constexpr uint32_t kMaxDirectionTime =
+    2000;  ///< Time (ms) after which direction is strongly preferred
+
+// PIR sensor timing
+constexpr uint32_t kPirTimeout = 30000;         ///< Time (ms) after PIR trigger before stopping
+constexpr uint32_t kInactivityTimeout = 30000;  ///< Time (ms) of inactivity before stopping
+
+// Direction bias
+constexpr float kNormalBias = 1.0f;    ///< Base direction bias
+constexpr float kStrongBias = 2.0f;    ///< Bias when recently turned in a direction
+constexpr float kStrongerBias = 3.0f;  ///< Bias when it's been a long time since turning
+
+}  // namespace AnimationConstants
 
 /**
  * @brief Direction of motor rotation
  */
-enum class MotorDirection : int8_t {
-    Stop = 0,     ///< Motor is stopped
-    Forward = 1,  ///< Motor is moving forward
-    Backward = -1 ///< Motor is moving backward
+enum class MotorDirection : int8_t
+{
+    Stop = 0,      ///< Motor is stopped
+    Forward = 1,   ///< Motor is moving forward
+    Backward = -1  ///< Motor is moving backward
 };
 
 /**
@@ -56,7 +60,8 @@ enum class MotorDirection : int8_t {
  * @param[in] rhs Multiplier
  * @return Reference to the modified MotorDirection
  */
-inline MotorDirection& operator*=(MotorDirection& lhs, int rhs) {
+inline MotorDirection& operator*=(MotorDirection& lhs, int rhs)
+{
     return lhs = static_cast<MotorDirection>(static_cast<int8_t>(lhs) * rhs);
 }
 
@@ -66,7 +71,8 @@ inline MotorDirection& operator*=(MotorDirection& lhs, int rhs) {
  * @param[in] rhs MotorDirection to multiply
  * @return Resulting MotorDirection
  */
-inline MotorDirection operator*(int lhs, MotorDirection rhs) {
+inline MotorDirection operator*(int lhs, MotorDirection rhs)
+{
     return static_cast<MotorDirection>(lhs * static_cast<int8_t>(rhs));
 }
 
@@ -76,15 +82,16 @@ inline MotorDirection operator*(int lhs, MotorDirection rhs) {
  * @param[in] rhs Multiplier
  * @return Resulting MotorDirection
  */
-inline MotorDirection operator*(MotorDirection lhs, int rhs) {
+inline MotorDirection operator*(MotorDirection lhs, int rhs)
+{
     return static_cast<MotorDirection>(static_cast<int8_t>(lhs) * rhs);
 }
-
 
 /**
  * @brief Main animation controller class
  */
-class Animation {
+class Animation
+{
 public:
     /**
      * @brief Construct a new Animation object
@@ -93,14 +100,10 @@ public:
      * @param[in] audio Audio player instance
      * @param[in] pins Pin configuration
      */
-    Animation(Stream* serial,
-              Adafruit_NeoPixel* pixels, 
-              AudioPlayer* audio, 
+    Animation(Stream* serial, Adafruit_NeoPixel* pixels, AudioPlayer* audio,
               const AnimationPins& pins)
-        : m_pixels(pixels)
-        , m_audioPlayer(audio)
-        , m_logger(serial, "[Animation] ")
-        , m_pins(pins) {
+        : m_pixels(pixels), m_audioPlayer(audio), m_logger(serial, "[Animation] "), m_pins(pins)
+    {
     }
 
     virtual ~Animation() = default;
@@ -169,11 +172,10 @@ protected:
     unsigned long m_lastLeftTurnTime;
     unsigned long m_lastRightTurnTime;
 
-    uint8_t m_rainbowIndex;  // Current position in rainbow cycle
-    unsigned long m_rainbowTimer; // Timer for rainbow animation
-    bool m_isRainbowActive;   // Flag to track rainbow state
-    unsigned long m_currentTime;      // Timestamp from update() call
-
+    uint8_t m_rainbowIndex;        // Current position in rainbow cycle
+    unsigned long m_rainbowTimer;  // Timer for rainbow animation
+    bool m_isRainbowActive;        // Flag to track rainbow state
+    unsigned long m_currentTime;   // Timestamp from update() call
 };
 
-#endif // Y_SERIES_USB_HUB_ANIMATION_H
+#endif  // Y_SERIES_USB_HUB_ANIMATION_H

@@ -4,10 +4,12 @@
  */
 
 #include "Logger.h"
-#include <cstdio>
-#include <cstdarg>
-#include <iostream>
+
 #include <Arduino.h>
+
+#include <cstdarg>
+#include <cstdio>
+#include <iostream>
 
 using namespace std;
 
@@ -41,14 +43,17 @@ const char* ANSI_COLOR_BLUE = "";
 const char* ANSI_COLOR_MAGENTA = "";
 #endif
 
-void Logger::log(LogLevel level, const char* format, va_list args) const {
+void Logger::log(LogLevel level, const char* format, va_list args) const
+{
     // Debug: Log entry
-    if (!isLoggable(level)) {
+    if (!isLoggable(level))
+    {
         return;
     }
     // Format the timestamp if needed
     char timestamp[16] = {0};
-    if (m_serial != &Serial) {  // Only add timestamp if not using Serial
+    if (m_serial != &Serial)
+    {  // Only add timestamp if not using Serial
         unsigned long now = millis();
         snprintf(timestamp, sizeof(timestamp), "%10lu ", now);
     }
@@ -56,83 +61,101 @@ void Logger::log(LogLevel level, const char* format, va_list args) const {
     // Make a copy of args since vsnprintf consumes it
     va_list args_copy;
     va_copy(args_copy, args);
-    
+
     // Format the message
     char message[MAX_LOG_LENGTH] = {0};
     int written = vsnprintf(message, sizeof(message), format, args);
-    
+
     // Debug: Check for buffer overflow
-    if (written >= static_cast<int>(sizeof(message))) {
+    if (written >= static_cast<int>(sizeof(message)))
+    {
         cout << "[WARNING] Logger::log - Message truncated" << endl;
     }
 
     // Actual log output
-    if (m_serial) {
+    if (m_serial)
+    {
         m_serial->print(timestamp);
         m_serial->print("[");
         m_serial->print(levelToString(level));
         m_serial->print("] ");
-        
-        if (m_prefix && m_prefix[0] != '\0') {
+
+        if (m_prefix && m_prefix[0] != '\0')
+        {
             m_serial->print(m_prefix);
             m_serial->print(" ");
         }
-        
+
         m_serial->println(message);
     }
-    
+
     // Clean up
     va_end(args_copy);
 }
 
-void Logger::debug(const char* format, ...) const {
+void Logger::debug(const char* format, ...) const
+{
     va_list args;
     va_start(args, format);
     log(LogLevel::DEBUG, format, args);
     va_end(args);
 }
 
-void Logger::info(const char* format, ...) const {
+void Logger::info(const char* format, ...) const
+{
     va_list args;
     va_start(args, format);
     log(LogLevel::INFO, format, args);
     va_end(args);
 }
 
-void Logger::warning(const char* format, ...) const {
+void Logger::warning(const char* format, ...) const
+{
     va_list args;
     va_start(args, format);
     log(LogLevel::WARNING, format, args);
     va_end(args);
 }
 
-void Logger::error(const char* format, ...) const {
+void Logger::error(const char* format, ...) const
+{
     va_list args;
     va_start(args, format);
     log(LogLevel::ERROR, format, args);
     va_end(args);
 }
 
-void Logger::critical(const char* format, ...) const {
+void Logger::critical(const char* format, ...) const
+{
     va_list args;
     va_start(args, format);
     log(LogLevel::CRITICAL, format, args);
     va_end(args);
 }
 
-void Logger::raw(const char* message) const {
-    if (m_serial) {
+void Logger::raw(const char* message) const
+{
+    if (m_serial)
+    {
         m_serial->println(message);
     }
 }
 
-const char* Logger::levelToString(LogLevel level) {
-    switch (level) {
-        case LogLevel::DEBUG:   return "DEBUG";
-        case LogLevel::INFO:    return "INFO ";
-        case LogLevel::WARNING: return "WARN ";
-        case LogLevel::ERROR:   return "ERROR";
-        case LogLevel::CRITICAL:return "CRIT ";
-        default:                return "?????";
+const char* Logger::levelToString(LogLevel level)
+{
+    switch (level)
+    {
+        case LogLevel::DEBUG:
+            return "DEBUG";
+        case LogLevel::INFO:
+            return "INFO ";
+        case LogLevel::WARNING:
+            return "WARN ";
+        case LogLevel::ERROR:
+            return "ERROR";
+        case LogLevel::CRITICAL:
+            return "CRIT ";
+        default:
+            return "?????";
     }
 }

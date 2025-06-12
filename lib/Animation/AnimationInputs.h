@@ -3,7 +3,8 @@
 
 #include <Arduino.h>
 
-struct AnimationInputs {
+struct AnimationInputs
+{
     int8_t sensorLeft;
     int8_t sensorRight;
     int8_t pirSensor;
@@ -12,7 +13,8 @@ struct AnimationInputs {
     unsigned long currentTime;
 };
 
-inline AnimationInputs readInputs(const AnimationPins& pins) {
+inline AnimationInputs readInputs(const AnimationPins& pins)
+{
     AnimationInputs inputs;
     inputs.sensorLeft = digitalRead(pins.sensorLeft);
     inputs.sensorRight = digitalRead(pins.sensorRight);
@@ -23,4 +25,4 @@ inline AnimationInputs readInputs(const AnimationPins& pins) {
     return inputs;
 }
 
-#endif // ANIMATIONINPUTS_H
+#endif  // ANIMATIONINPUTS_H

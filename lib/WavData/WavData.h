@@ -1,7 +1,7 @@
 /**
  * @file WavData.h
  * @brief WAV audio data storage and management for embedded systems
- * 
+ *
  * This module provides storage for WAV audio files in program memory (PROGMEM)
  * and utilities to access them. It's designed for use with audio playback
  * systems on memory-constrained embedded devices.
@@ -55,4 +55,4 @@ extern const uint8_t* sound_data_pointers[NUM_SOUND_FILES];
 /// @brief Array of sizes for all WAV data files
 extern const size_t sound_data_sizes[NUM_SOUND_FILES];
 
-#endif // WAVDATA_H
+#endif  // WAVDATA_H

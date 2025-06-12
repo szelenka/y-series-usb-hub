@@ -1,7 +1,8 @@
 #ifndef MOCK_ADAFRUIT_SLEEPSYDOG_H
 #define MOCK_ADAFRUIT_SLEEPSYDOG_H
 
-class WatchdogType {
+class WatchdogType
+{
 public:
     void begin() {}
     void enable() {}
@@ -14,4 +15,4 @@ public:
 
 extern WatchdogType Watchdog;
 
-#endif // MOCK_ADAFRUIT_SLEEPSYDOG_H
+#endif  // MOCK_ADAFRUIT_SLEEPSYDOG_H
