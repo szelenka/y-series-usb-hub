@@ -94,3 +94,8 @@ coverage-clean:
 	find .pio/build/coverage -name '*.gcda' -delete || true
 	@echo "[COVERAGE] Coverage files cleaned."
 
+test-local:
+	pio test -e native -vvv
+
+build:
+	pio run -e kb2040

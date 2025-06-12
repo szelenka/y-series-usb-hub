@@ -40,10 +40,10 @@ AnimationPins customPins(
 
 Adafruit_NeoPixel neoPixel(NUMPIXELS, customPins.eyeNeck, NEO_GRB + NEO_KHZ800);
 PWMAudio audio(customPins.audioOut);
-ROMBackgroundAudioWAV bga(&audio);
+ROMBackgroundAudioWAV bga(audio);
 AudioPlayer audioPlayer(&bga);
 
-Animation animation(Serial, &neoPixel, &audioPlayer, customPins);
+Animation animation(&Serial, &neoPixel, &audioPlayer, customPins);
 
 void setup()
 {
@@ -78,7 +78,7 @@ void setup()
 
 void loop()
 {
-  animation.update(readInputs(customPins););
+  animation.update(readInputs(customPins));
   animation.setRotationDirection();
   animation.performRotate();
   animation.eyeBlink();

@@ -19,7 +19,6 @@ public:
         m_state(WAVState::Stopped),
         m_currentSoundIndex(-1) 
     {
-        std::cout << "AudioPlayer constructor called" << std::endl;
         if (m_player != nullptr) {
             m_player->begin();
             // Initialize WAV data pointers

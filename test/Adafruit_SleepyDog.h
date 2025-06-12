@@ -9,6 +9,7 @@ public:
     void reset() {}
     void setPeriod(uint32_t period) {}
     void setAction(uint8_t action) {}
+    void sleep(uint32_t period) {}
 };
 
 extern WatchdogType Watchdog;

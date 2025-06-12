@@ -12,8 +12,9 @@ void Animation::update(const AnimationInputs& inputs)
 
 void Animation::rotate(uint8_t speed, MotorDirection direction)
 {
+    uint8_t safe_speed = constrain(speed, 0, 255);
     // Use std::clamp for C++17 and above for constraining values
-    uint8_t safe_speed = std::clamp(speed, static_cast<uint8_t>(0), static_cast<uint8_t>(255));
+    // uint8_t safe_speed = std::clamp(speed, static_cast<uint8_t>(0), static_cast<uint8_t>(255));
     if (direction == MotorDirection::Forward) {
         analogWrite(m_pins.neckMotorIn1, safe_speed);
         analogWrite(m_pins.neckMotorIn2, LOW);
