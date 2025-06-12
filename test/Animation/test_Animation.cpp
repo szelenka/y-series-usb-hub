@@ -715,6 +715,56 @@ void test_update()
     TEST_ASSERT_EQUAL(12345, animation.getCurrentTime());
 }
 
+void test_handle_pir_triggered_with_stopped_motor()
+{
+    std::cout << "  Running test_handle_pir_triggered_with_stopped_motor()" << std::endl;
+
+    // Create mock objects
+    Stream* streamPtr = ArduinoFakeMock(Stream);
+    Mock<Adafruit_NeoPixel> pixelsMock;
+    Mock<AudioPlayer> audioPlayerMock;
+    Animation obj(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), AnimationPins());
+    Mock<Animation> spy(obj);
+    When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
+        .AlwaysDo([](const char* str) { return strlen(str); });
+    When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
+        .AlwaysDo([](const char* str) { return strlen(str) + 1; });
+    When(Method(audioPlayerMock, play)).AlwaysReturn();
+    When(OverloadedMethod(ArduinoFake(), random, long(long, long)))
+        .AlwaysDo(
+            [](long min, long max)
+            {
+                return 100;  // Return a small number to favor left direction
+            });
+
+    // Set up test conditions
+    Animation& animation = spy.get();
+    
+    // Set initial state - motor is stopped
+    animation.setMotorDirection(MotorDirection::Stop);
+    animation.setLastPIRState(LOW); // Previous state was inactive
+    animation.setCurrentTime(1000);  // Arbitrary time
+    
+    // Mock the setRotationDirection method
+    When(Method(spy, setRotationDirection)).AlwaysReturn();
+    
+    // Mock the rotate method to verify it's called with expected parameters
+    When(Method(spy, rotate)).AlwaysReturn();
+    
+    // Call the method under test
+    animation.handlePirTriggered();
+    
+    // Verify setRotationDirection was called
+    Verify(Method(spy, setRotationDirection)).Once();
+    
+    // Verify rotate was called
+    Verify(Method(spy, rotate)).Once();
+    
+    // Verify state was updated
+    TEST_ASSERT_EQUAL(HIGH, animation.getLastPIRState());
+    TEST_ASSERT_EQUAL(1000, animation.getLastPIRTimer());
+}
+
 void runAnimationTests()
 {
     UNITY_BEGIN();
@@ -733,5 +783,6 @@ void runAnimationTests()
     RUN_TEST(test_updateRainbow);
     RUN_TEST(test_updateSound);
     RUN_TEST(test_rotate);
+    RUN_TEST(test_handle_pir_triggered_with_stopped_motor);
     UNITY_END();
 }

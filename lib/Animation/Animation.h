@@ -127,6 +127,7 @@ public:
     bool getIsRainbowActive() const { return m_isRainbowActive; }
     uint8_t getRainbowIndex() const { return m_rainbowIndex; }
     unsigned long getRainbowTimer() const { return m_rainbowTimer; }
+    int8_t getLastPIRState() const { return m_lastPIRState; }
 
     // Setters for testing
     void setInputSensorLeft(int8_t value) { m_inputSensorLeft = value; }
@@ -143,6 +144,7 @@ public:
     void setIsRainbowActive(bool value) { m_isRainbowActive = value; }
     void setRainbowIndex(uint8_t value) { m_rainbowIndex = value; }
     void setRainbowTimer(unsigned long value) { m_rainbowTimer = value; }
+    void setLastPIRState(int8_t value) { m_lastPIRState = value; }
 
     virtual void eyeBlink();
     virtual void updateSound();
