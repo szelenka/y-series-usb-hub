@@ -69,29 +69,6 @@ bool AudioPlayer::playRandomSound() {
         return false;  // No sounds available
     }
     
-    int index;
-    
-#ifdef ARDUINO
-    // Use Arduino's random function which is already well-seeded
-    index = random(0, static_cast<int>(getSoundCount()));
-#else
-    // Use C++11 random number generation for native builds
-    static bool seeded = false;
-    if (!seeded) {
-        std::srand(static_cast<unsigned int>(std::time(nullptr)));
-        seeded = true;
-    }
-    
-    // Get a random index using rejection sampling to avoid bias
-    const int range = static_cast<int>(getSoundCount());
-    const int max = RAND_MAX - (RAND_MAX % range);
-    
-    do {
-        index = std::rand();
-    } while (index >= max);
-    
-    index %= range;
-#endif
-    
+    int index = random(0, static_cast<int>(getSoundCount()));
     return play(index);
 }

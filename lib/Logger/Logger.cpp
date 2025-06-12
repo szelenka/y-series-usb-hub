@@ -133,7 +133,6 @@ const char* Logger::levelToString(LogLevel level) {
         case LogLevel::WARNING: return "WARN ";
         case LogLevel::ERROR:   return "ERROR";
         case LogLevel::CRITICAL:return "CRIT ";
-        case LogLevel::NONE:    return "NONE ";
         default:                return "?????";
     }
 }

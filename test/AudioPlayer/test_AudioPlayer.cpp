@@ -4,14 +4,6 @@
 #include "AudioPlayer.h"
 #include "mock_helpers.h"
 
-// Mock random() - use a simple deterministic approach
-int random(int min, int max) {
-    // Use a simple counter that wraps around
-    static int counter = 0;
-    counter = (counter + 1) % max;
-    return counter;
-}
-
 using namespace fakeit;
 
 void test_audio_player_play()
@@ -90,6 +82,9 @@ void test_audio_player_stop()
         .Do([]() {
             return true;  // Mock begin
         });
+    When(OverloadedMethod(ArduinoFake(), random, long(long, long))).AlwaysDo([](long min, long max) {
+        return 1; 
+    });
     
     // Create audio player
     AudioPlayer* player = new AudioPlayer(&playerMock.get());
@@ -133,6 +128,9 @@ void test_audio_player_update()
         .Do([]() {
             return true;  // Mock begin
         });
+    When(OverloadedMethod(ArduinoFake(), random, long(long, long))).AlwaysDo([](long min, long max) {
+        return 1; 
+    });
     
     // Create audio player
     AudioPlayer* player = new AudioPlayer(&playerMock.get());
@@ -176,7 +174,10 @@ void test_audio_player_random_sound()
         .Do([]() {
             return true;  // Mock begin
         });
-    
+    When(OverloadedMethod(ArduinoFake(), random, long(long, long))).AlwaysDo([](long min, long max) {
+        return 1; 
+    });
+
     // Create audio player
     AudioPlayer* player = new AudioPlayer(&playerMock.get());
     
