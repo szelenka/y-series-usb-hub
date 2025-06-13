@@ -86,6 +86,8 @@ coverage:
 	lcov --extract coverage.info "*/lib/*" --output-file coverage.info
 	@echo "[COVERAGE] Generating HTML report in .coverage/ ..."
 	genhtml coverage.info --output-directory .coverage
+	@echo "[COVERAGE] Generating coverage badge..."
+	./.scripts/generate_coverage_badge.sh
 	@echo "[COVERAGE] Done. Open .coverage/index.html to view the report."
 
 coverage-clean:
@@ -99,6 +101,18 @@ test-local:
 
 build:
 	pio run -e kb2040
+
+# Upload firmware to the device
+upload:
+	pio run -e kb2040 --target upload
+
+# Monitor serial output from the device
+monitor:
+	pio device monitor
+
+# Upload firmware and then monitor serial output
+upload-and-monitor: upload
+	pio device monitor
 
 # Python virtual environment setup
 .venv: .scripts/requirements.txt
