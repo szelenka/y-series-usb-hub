@@ -69,8 +69,9 @@ The code is organized into several modules:
 ### Prerequisites
 
 - PlatformIO Core
-- Python 3.6+ (for development tools)
+- Python 3.12+ (for development tools)
 - clang-format (for code formatting)
+- docker (for cross-platform code coverage)
 
 ### Build Commands
 
@@ -181,4 +182,4 @@ For commercial use, please contact the author for licensing options.
 
 - [LEGO Lightsabers](https://github.com/szelenka/lightsaber)
 - [PlatformIO](https://platformio.org/)
-- [Adafruit KB2040](https://www.adafruit.com/product/4884)
+- [Adafruit KB2040](https://www.adafruit.com/product/5302)
