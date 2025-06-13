@@ -15,22 +15,6 @@ void test_animation_initialization()
     Mock<Adafruit_NeoPixel> pixelsMock;
     Mock<AudioPlayer> audioPlayerMock;
 
-    // When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*))).Do([](const char*
-    // str) { return strlen(str); }); When(OverloadedMethod(ArduinoFake(Stream), println,
-    // size_t(const char*))).Do([](const char* str) { return strlen(str) + 1; });
-    // When(Method(audioPlayerMock, play)).Do([](int) { return; });
-    // When(Method(audioPlayerMock, stop)).Do([]() { return; });
-    // When(Method(audioPlayerMock, update)).Do([]() { return; });
-    // When(Method(audioPlayerMock, playRandomSound)).Do([]() { return; });
-    // When(Method(audioPlayerMock, getState)).Do([]() { return WAVState::Playing; });
-    // When(Method(audioPlayerMock, getCurrentSoundIndex)).Do([]() { return 0; });
-    // When(Method(audioPlayerMock, isPlaying)).Do([]() { return true; });
-    // When(Method(pixelsMock, begin)).Do([]() { return; });
-    // When(Method(pixelsMock, clear)).Do([]() { return; });
-    // When(Method(pixelsMock, show)).Do([]() { return; });
-    // When(Method(pixelsMock, setPixelColor)).Do([](uint16_t, uint32_t) { return; });
-    // When(Method(pixelsMock, numPixels)).Do([]() { return 10; });
-
     // Create animation object
     Animation* animation =
         new Animation(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), AnimationPins());
@@ -739,27 +723,27 @@ void test_handle_pir_triggered_with_stopped_motor()
 
     // Set up test conditions
     Animation& animation = spy.get();
-    
+
     // Set initial state - motor is stopped
     animation.setMotorDirection(MotorDirection::Stop);
-    animation.setLastPIRState(LOW); // Previous state was inactive
+    animation.setLastPIRState(LOW);  // Previous state was inactive
     animation.setCurrentTime(1000);  // Arbitrary time
-    
+
     // Mock the setRotationDirection method
     When(Method(spy, setRotationDirection)).AlwaysReturn();
-    
+
     // Mock the rotate method to verify it's called with expected parameters
     When(Method(spy, rotate)).AlwaysReturn();
-    
+
     // Call the method under test
     animation.handlePirTriggered();
-    
+
     // Verify setRotationDirection was called
     Verify(Method(spy, setRotationDirection)).Once();
-    
+
     // Verify rotate was called
     Verify(Method(spy, rotate)).Once();
-    
+
     // Verify state was updated
     TEST_ASSERT_EQUAL(HIGH, animation.getLastPIRState());
     TEST_ASSERT_EQUAL(1000, animation.getLastPIRTimer());

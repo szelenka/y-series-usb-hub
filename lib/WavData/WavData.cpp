@@ -22,12 +22,12 @@
 
 // Array of pointers to all WAV data files
 const uint8_t* sound_data_pointers[NUM_SOUND_FILES] = {
-    wav_chat_01_data, wav_chat_02_data, wav_excited_03_data, wav_excited_04_data,
+    wav_chat_01_data, wav_chat_02_data,     wav_excited_03_data,  wav_excited_04_data,
     wav_powerup_data, wav_question_02_data, wav_question_03_data, wav_question_04_data,
-    wav_sad_01_data, wav_sad_02_data, wav_sad_03_data};
+    wav_sad_01_data,  wav_sad_02_data,      wav_sad_03_data};
 
 // Array of sizes for all WAV data files
 const size_t sound_data_sizes[NUM_SOUND_FILES] = {
-    wav_chat_01_size, wav_chat_02_size, wav_excited_03_size, wav_excited_04_size,
+    wav_chat_01_size, wav_chat_02_size,     wav_excited_03_size,  wav_excited_04_size,
     wav_powerup_size, wav_question_02_size, wav_question_03_size, wav_question_04_size,
-    wav_sad_01_size, wav_sad_02_size, wav_sad_03_size};
+    wav_sad_01_size,  wav_sad_02_size,      wav_sad_03_size};

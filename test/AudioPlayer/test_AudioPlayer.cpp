@@ -208,7 +208,7 @@ void test_constructor_initialization()
 
     // Verify begin() was called
     Verify(Method(playerMock, begin)).Once();
-    
+
     // Verify initial state
     TEST_ASSERT_EQUAL(WAVState::Stopped, player.getState());
     TEST_ASSERT_EQUAL(-1, player.getCurrentSoundIndex());
@@ -229,20 +229,20 @@ void test_play_stops_current_playback()
 
     // Create audio player
     AudioPlayer player(&playerMock.get());
-    
+
     // First play - should work
     TEST_ASSERT_TRUE(player.play(0));
     TEST_ASSERT_EQUAL(WAVState::Playing, player.getState());
-    
+
     // Reset mock to track calls
     playerMock.ClearInvocationHistory();
-    
+
     // Play again - should stop current playback first
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t))).Return(1);
-    
+
     // Second play should trigger stop() which calls flush()
     TEST_ASSERT_TRUE(player.play(1));
-    
+
     // Verify flush was called (from stop())
     Verify(Method(playerMock, flush)).Once();
 }
@@ -262,19 +262,19 @@ void test_stop_behavior()
 
     // Create audio player
     AudioPlayer player(&playerMock.get());
-    
+
     // Play first to set state
     player.play(0);
-    
+
     // Reset mock to track calls
     playerMock.ClearInvocationHistory();
-    
+
     // Call stop
     player.stop();
-    
+
     // Verify flush was called
     Verify(Method(playerMock, flush)).Once();
-    
+
     // Verify state was updated
     TEST_ASSERT_EQUAL(WAVState::Stopped, player.getState());
     TEST_ASSERT_EQUAL(-1, player.getCurrentSoundIndex());
@@ -282,29 +282,30 @@ void test_stop_behavior()
 
 void test_update_transitions_to_stopped_when_playback_finishes()
 {
-    std::cout << "  Running test_update_transitions_to_stopped_when_playback_finishes()" << std::endl;
+    std::cout << "  Running test_update_transitions_to_stopped_when_playback_finishes()"
+              << std::endl;
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
 
     // Set up mock behavior
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t))).Return(1);
-    When(Method(playerMock, playing)).Return(false); // Simulate playback finished
+    When(Method(playerMock, playing)).Return(false);  // Simulate playback finished
     When(Method(playerMock, flush)).Do([]() {});
     When(Method(playerMock, begin)).Return(true);
 
     // Create audio player
     AudioPlayer player(&playerMock.get());
-    
+
     // Play first to set state
     player.play(0);
-    
+
     // Reset mock to track calls
     playerMock.ClearInvocationHistory();
-    
+
     // Call update - should detect playback finished and stop
     player.update();
-    
+
     // Verify state was updated to Stopped
     TEST_ASSERT_EQUAL(WAVState::Stopped, player.getState());
     TEST_ASSERT_EQUAL(-1, player.getCurrentSoundIndex());
@@ -322,23 +323,26 @@ void test_play_random_sound_generates_valid_index()
     When(Method(playerMock, playing)).AlwaysReturn(true);
     When(Method(playerMock, flush)).AlwaysDo([]() {});
     When(Method(playerMock, begin)).AlwaysReturn(true);
-    
+
     // Mock random to return specific values for testing
     int testIndices[] = {0, 1, NUM_SOUND_FILES - 1};
     int callCount = 0;
-    
+
     When(OverloadedMethod(ArduinoFake(), random, long(long, long)))
-        .AlwaysDo([&testIndices, &callCount](long min, long max) {
-            int result = testIndices[callCount % 3];
-            callCount++;
-            return result;
-        });
+        .AlwaysDo(
+            [&testIndices, &callCount](long min, long max)
+            {
+                int result = testIndices[callCount % 3];
+                callCount++;
+                return result;
+            });
 
     // Create audio player
     AudioPlayer player(&playerMock.get());
-    
+
     // Test multiple calls to ensure random index is within bounds
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++)
+    {
         TEST_ASSERT_TRUE(player.playRandomSound());
         int index = player.getCurrentSoundIndex();
         TEST_ASSERT_TRUE(index >= 0);
@@ -352,16 +356,16 @@ void test_constructor_with_null()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-    
+
     // Set up expectation that begin() will be called
     When(Method(playerMock, begin)).AlwaysReturn(true);
-    
+
     // Create AudioPlayer - should not call begin() on the player
     AudioPlayer player(nullptr);
 
     player.stop();
     player.update();
-    
+
     // Verify begin() was not called
     Verify(Method(playerMock, begin)).Never();
 }
@@ -372,23 +376,23 @@ void test_play_invalid_write()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-    
+
     // Set up mock behavior
     When(Method(playerMock, flush)).AlwaysReturn();
     When(Method(playerMock, begin)).AlwaysReturn(true);
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t))).AlwaysReturn(0);
-    
+
     // Create AudioPlayer and set initial state
     AudioPlayer player(&playerMock.get());
-    bool result = player.play(1); // Set state to Playing
+    bool result = player.play(1);  // Set state to Playing
     TEST_ASSERT_FALSE(result);
-    
+
     // Call stop()
     player.stop();
-    
+
     // Verify flush() was called
     Verify(Method(playerMock, flush)).Once();
-    
+
     // Verify state was updated to Stopped
     TEST_ASSERT_EQUAL(WAVState::Stopped, player.getState());
     TEST_ASSERT_EQUAL(-1, player.getCurrentSoundIndex());
@@ -400,21 +404,21 @@ void test_play_random_sound_with_sounds()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-    
+
     // Set up mock behavior
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t))).Return(1);
     When(Method(playerMock, begin)).AlwaysReturn(true);
-    
+
     // Mock random to return specific value
     When(OverloadedMethod(ArduinoFake(), random, long(long, long)))
-        .AlwaysReturn(2); // Return index 2
-    
+        .AlwaysReturn(2);  // Return index 2
+
     // Create AudioPlayer
     AudioPlayer player(&playerMock.get());
-    
+
     // Play random sound - should succeed
     TEST_ASSERT_TRUE(player.playRandomSound());
-    
+
     // Verify play was called with index 2
     TEST_ASSERT_EQUAL(2, player.getCurrentSoundIndex());
 }
@@ -438,24 +442,24 @@ void test_destructor_and_copy_prevention()
         AudioPlayer player1(&playerMock.get());
         // The following line should cause a compilation error if uncommented
         // AudioPlayer player2 = player1; // Should not compile
-        
+
         // Use decltype to check if copy constructor is deleted
-        static_assert(!std::is_copy_constructible<AudioPlayer>::value, 
-                     "AudioPlayer should not be copy constructible");
-        
+        static_assert(!std::is_copy_constructible<AudioPlayer>::value,
+                      "AudioPlayer should not be copy constructible");
+
         // Verify assignment operator is deleted
         AudioPlayer player3(&playerMock.get());
         // The following line should cause a compilation error if uncommented
         // player3 = player1; // Should not compile
-        
-        static_assert(!std::is_copy_assignable<AudioPlayer>::value, 
-                     "AudioPlayer should not be copy assignable");
+
+        static_assert(!std::is_copy_assignable<AudioPlayer>::value,
+                      "AudioPlayer should not be copy assignable");
     }
 
     // Verify move constructor is deleted (since we have user-declared destructor)
-    static_assert(!std::is_move_constructible<AudioPlayer>::value || 
-                 !std::is_move_assignable<AudioPlayer>::value,
-                 "AudioPlayer should not be move constructible or assignable");
+    static_assert(!std::is_move_constructible<AudioPlayer>::value ||
+                      !std::is_move_assignable<AudioPlayer>::value,
+                  "AudioPlayer should not be move constructible or assignable");
 }
 
 void runAudioPlayerTests()
@@ -466,25 +470,25 @@ void runAudioPlayerTests()
     RUN_TEST(test_audio_player_stop);
     RUN_TEST(test_audio_player_update);
     RUN_TEST(test_audio_player_random_sound);
-    
+
     // Constructor and initialization tests
     RUN_TEST(test_constructor_initialization);
     RUN_TEST(test_constructor_with_null);
-    
+
     // Playback control tests
     RUN_TEST(test_play_stops_current_playback);
     RUN_TEST(test_stop_behavior);
-    
+
     // State transition tests
     RUN_TEST(test_update_transitions_to_stopped_when_playback_finishes);
     RUN_TEST(test_play_invalid_write);
-    
+
     // Random sound tests
     RUN_TEST(test_play_random_sound_generates_valid_index);
     RUN_TEST(test_play_random_sound_with_sounds);
-    
+
     // Special cases
     RUN_TEST(test_destructor_and_copy_prevention);
-    
+
     UNITY_END();
 }

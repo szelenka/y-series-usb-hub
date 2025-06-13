@@ -13,11 +13,11 @@
  */
 enum class LogLevel : uint8_t
 {
-    DEBUG,     ///< Detailed debug information
-    INFO,      ///< General operational messages
-    WARNING,   ///< Indicates potential issues
-    ERROR,     ///< Error conditions that might still allow the application to continue
-    CRITICAL   ///< Critical conditions that prevent normal operation
+    DEBUG,    ///< Detailed debug information
+    INFO,     ///< General operational messages
+    WARNING,  ///< Indicates potential issues
+    ERROR,    ///< Error conditions that might still allow the application to continue
+    CRITICAL  ///< Critical conditions that prevent normal operation
 };
 
 /**

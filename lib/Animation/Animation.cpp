@@ -5,8 +5,6 @@
 
 #include "Animation.h"
 
-#include <algorithm>
-
 // Use constants from Animation.h
 
 void Animation::update(const AnimationInputs& inputs)

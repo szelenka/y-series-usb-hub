@@ -1,7 +1,7 @@
 /**
  * @file AnimationPins.h
  * @brief Pin configuration structure for the animation controller
- * 
+ *
  * This file defines the AnimationPins structure that holds pin assignments
  * for all hardware components used in the animation system.
  */
@@ -14,18 +14,20 @@
 
 /**
  * @brief Holds pin assignments for all animation-related hardware components
- * 
+ *
  * This structure contains pin numbers for all the hardware components
  * used in the animation system, including sensors, motors, and indicators.
  * It provides both default and custom constructors for easy initialization.
  */
 struct AnimationPins
 {
-    const uint8_t eyeNeck;         ///< Pin number for the eye/neck servo control
-    const uint8_t neckMotorIn1;     ///< First control pin for the neck motor (H-bridge input 1)
-    const uint8_t neckMotorIn2;     ///< Second control pin for the neck motor (H-bridge input 2)
-    const uint8_t sensorLeft;       ///< Left-side sensor pin for detecting movement or proximity
-    const uint8_t sensorRight;      ///< Right-side sensor pin for detecting movement or proximity
+    const uint8_t eyeNeck;       ///< Pin number for the neoPixel for the eye
+    const uint8_t neckMotorIn1;  ///< First control pin for the neck motor (H-bridge input 1)
+    const uint8_t neckMotorIn2;  ///< Second control pin for the neck motor (H-bridge input 2)
+    const uint8_t
+        sensorLeft;  ///< Left-side hall effect sensor pin for detecting movement or proximity
+    const uint8_t
+        sensorRight;  ///< Right-side hall effect sensor pin for detecting movement or proximity
     const uint8_t pirSensor;        ///< PIR (Passive Infrared) motion sensor pin
     const uint8_t buttonRectangle;  ///< Rectangular button input pin
     const uint8_t buttonCircle;     ///< Circular button input pin
@@ -35,7 +37,7 @@ struct AnimationPins
 
     /**
      * @brief Default constructor with standard pin assignments
-     * 
+     *
      * Initializes all pins with default values:
      * - eyeNeck: 1
      * - neckMotorIn1: 2
@@ -66,12 +68,12 @@ struct AnimationPins
 
     /**
      * @brief Custom constructor with specified pin assignments
-     * 
-     * @param eyeNeck Pin for eye/neck servo control
+     *
+     * @param eyeNeck Pin for eye/neck neoPixel
      * @param neckMotorIn1 First control pin for neck motor (H-bridge input 1)
      * @param neckMotorIn2 Second control pin for neck motor (H-bridge input 2)
-     * @param sensorLeft Left-side sensor pin
-     * @param sensorRight Right-side sensor pin
+     * @param sensorLeft Left-side hall effect sensor pin
+     * @param sensorRight Right-side hall effect sensor pin
      * @param pirSensor PIR motion sensor pin
      * @param buttonRectangle Rectangular button input pin
      * @param buttonCircle Circular button input pin
