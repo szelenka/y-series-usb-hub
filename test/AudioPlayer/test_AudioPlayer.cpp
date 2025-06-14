@@ -13,7 +13,7 @@ void test_audio_player_play()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-
+    Log.setLogLevel(LogLevel::NONE);
     // Mock player methods
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t)))
         .Do([](const uint8_t* data, size_t size) { return 1; });
@@ -62,7 +62,7 @@ void test_audio_player_stop()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-
+    Log.setLogLevel(LogLevel::NONE);
     // Mock player methods
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t)))
         .Do([](const uint8_t* data, size_t size) { return 1; });
@@ -108,7 +108,7 @@ void test_audio_player_update()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-
+    Log.setLogLevel(LogLevel::NONE);
     // Mock player methods
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t)))
         .Do([](const uint8_t* data, size_t size) { return 1; });
@@ -154,7 +154,7 @@ void test_audio_player_random_sound()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-
+    Log.setLogLevel(LogLevel::NONE);
     // Mock player methods
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t)))
         .Do([](const uint8_t* data, size_t size) { return 1; });
@@ -199,7 +199,7 @@ void test_constructor_initialization()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-
+    Log.setLogLevel(LogLevel::NONE);
     // Set up expectations
     When(Method(playerMock, begin)).Return(true);
 
@@ -220,7 +220,7 @@ void test_play_stops_current_playback()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-
+    Log.setLogLevel(LogLevel::NONE);
     // Set up mock behavior
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t))).Return(1);
     When(Method(playerMock, playing)).Return(true);
@@ -253,7 +253,7 @@ void test_stop_behavior()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-
+    Log.setLogLevel(LogLevel::NONE);
     // Set up mock behavior
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t))).Return(1);
     When(Method(playerMock, playing)).Return(true);
@@ -287,7 +287,7 @@ void test_update_transitions_to_stopped_when_playback_finishes()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-
+    Log.setLogLevel(LogLevel::NONE);
     // Set up mock behavior
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t))).Return(1);
     When(Method(playerMock, playing)).Return(false);  // Simulate playback finished
@@ -317,7 +317,7 @@ void test_play_random_sound_generates_valid_index()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-
+    Log.setLogLevel(LogLevel::NONE);
     // Set up mock behavior
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t))).AlwaysReturn(1);
     When(Method(playerMock, playing)).AlwaysReturn(true);
@@ -356,7 +356,7 @@ void test_constructor_with_null()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-
+    Log.setLogLevel(LogLevel::NONE);
     // Set up expectation that begin() will be called
     When(Method(playerMock, begin)).AlwaysReturn(true);
 
@@ -376,7 +376,7 @@ void test_play_invalid_write()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-
+    Log.setLogLevel(LogLevel::NONE);
     // Set up mock behavior
     When(Method(playerMock, flush)).AlwaysReturn();
     When(Method(playerMock, begin)).AlwaysReturn(true);
@@ -404,7 +404,7 @@ void test_play_random_sound_with_sounds()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
-
+    Log.setLogLevel(LogLevel::NONE);
     // Set up mock behavior
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t))).Return(1);
     When(Method(playerMock, begin)).AlwaysReturn(true);
@@ -429,6 +429,7 @@ void test_destructor_and_copy_prevention()
 
     // Create mock object
     Mock<ROMBackgroundAudioWAV> playerMock;
+    Log.setLogLevel(LogLevel::NONE);
     When(Method(playerMock, begin)).AlwaysReturn(true);
 
     // Test that we can create and destroy an AudioPlayer

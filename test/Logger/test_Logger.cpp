@@ -31,8 +31,7 @@ void test_logger_levels()
 
     Logger logger(streamPtr, "[Test]");
 
-    // Set global log level to DEBUG (show all messages)
-    Logger::s_logLevel = LogLevel::DEBUG;
+    // Set log level to DEBUG (show all messages)
     logger.setLogLevel(LogLevel::DEBUG);
 
     // Test DEBUG level
@@ -95,8 +94,7 @@ void test_logger_level_filtering()
 
     Logger logger(streamPtr, "[Test]");
 
-    // Set global log level to WARNING (only WARNING and above should be logged)
-    Logger::s_logLevel = LogLevel::WARNING;
+    // Set log level to WARNING (only WARNING and above should be logged)
     logger.setLogLevel(LogLevel::WARNING);
 
     // These should not be logged

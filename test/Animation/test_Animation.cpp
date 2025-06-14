@@ -2,6 +2,7 @@
 #include <unity.h>
 
 #include "Animation.h"
+#include "EyeAnimation.h"
 #include "mock_helpers.h"
 
 using namespace fakeit;
@@ -11,13 +12,12 @@ void test_animation_initialization()
     std::cout << "  Running test_animation_initialization()" << std::endl;
 
     // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
+    Mock<EyeAnimation> pixelsMock;
     Mock<AudioPlayer> audioPlayerMock;
 
     // Create animation object
     Animation* animation =
-        new Animation(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), AnimationPins());
+        new Animation(&pixelsMock.get(), &audioPlayerMock.get(), AnimationPins());
 
     // Verify initialization
     TEST_ASSERT_NOT_NULL(animation);
@@ -31,9 +31,6 @@ void test_read_inputs()
     std::cout << "  Running test_read_inputs()" << std::endl;
 
     // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
-    Mock<AudioPlayer> audioPlayerMock;
     const AnimationPins pins = AnimationPins();
 
     // Mock Arduino functions
@@ -46,8 +43,7 @@ void test_read_inputs()
     When(Method(ArduinoFake(), millis)).Do([]() { return 1000; });
 
     // Create animation object
-    Animation* animation =
-        new Animation(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
+    Animation* animation = new Animation(nullptr, nullptr, pins);
 
     // Set inputs using setter methods
     std::cout << "Setting inputs using setter methods..." << std::endl;
@@ -77,9 +73,6 @@ void test_set_rotation_direction_random()
     std::cout << "  Running test_set_rotation_direction_random()" << std::endl;
 
     // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
-    Mock<AudioPlayer> audioPlayerMock;
     const AnimationPins pins = AnimationPins();
 
     When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
@@ -96,7 +89,7 @@ void test_set_rotation_direction_random()
             });
 
     // Create animation object
-    Animation i(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
+    Animation i(nullptr, nullptr, pins);
 
     // Set initial state
     i.setMotorDirection(MotorDirection::Forward);
@@ -123,16 +116,35 @@ void test_perform_rotate()
 {
     std::cout << "  Running test_perform_rotate()" << std::endl;
 
-    // Create mock objects
     Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
     Mock<AudioPlayer> audioPlayerMock;
+
+    // Create mock objects
     const AnimationPins pins = AnimationPins();
 
+    // Initialize global Log instance with mocked Serial
+    Log = Logger(streamPtr);
+    Log.setLogLevel(LogLevel::DEBUG);
+
+    // Mock Serial output for Logger
+    char logBuffer[1024] = {0};
     When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str); });
+        .AlwaysDo(
+            [&logBuffer](const char* str)
+            {
+                strcat(logBuffer, str);
+                return strlen(str);
+            });
     When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str) + 1; });
+        .AlwaysDo(
+            [&logBuffer](const char* str)
+            {
+                strcat(logBuffer, str);
+                strcat(logBuffer, "\n");
+                return strlen(str) + 1;
+            });
+    // When(OverloadedMethod(ArduinoFake(Stream), println, size_t())).AlwaysReturn(1);
+
     // Mock random number generator to return a specific speed
     When(OverloadedMethod(ArduinoFake(), random, long(long, long)))
         .AlwaysDo(
@@ -140,10 +152,12 @@ void test_perform_rotate()
             {
                 return 200;  // Return a speed value
             });
-    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return true; });
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
+    When(Method(ArduinoFake(), millis)).AlwaysReturn(1000);
+    When(Method(audioPlayerMock, play)).AlwaysReturn(true);
+
     // Create animation object
-    Animation i(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
+    Animation i(nullptr, &audioPlayerMock.get(), pins);
 
     // Set initial state
     i.setMotorDirection(MotorDirection::Forward);
@@ -172,9 +186,6 @@ void test_set_rotation_direction_with_sensor_trip()
 {
     std::cout << "  Running test_set_rotation_direction_with_sensor_left()" << std::endl;
     // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
-    Mock<AudioPlayer> audioPlayerMock;
     const AnimationPins pins = AnimationPins();
 
     When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
@@ -182,10 +193,9 @@ void test_set_rotation_direction_with_sensor_trip()
     When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
         .AlwaysDo([](const char* str) { return strlen(str) + 1; });
     // random not needed for this test
-    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return true; });
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
 
-    Animation i(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
+    Animation i(nullptr, nullptr, pins);
 
     // Set initial state
     i.setMotorDirection(MotorDirection::Forward);
@@ -224,19 +234,15 @@ void test_perform_rotate_pir_not_triggered_no_timeout()
 {
     std::cout << "  Running test_perform_rotate_pir_not_triggered_no_timeout()" << std::endl;
     // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
-    Mock<AudioPlayer> audioPlayerMock;
     const AnimationPins pins = AnimationPins();
 
     When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
         .AlwaysDo([](const char* str) { return strlen(str); });
     When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
         .AlwaysDo([](const char* str) { return strlen(str) + 1; });
-    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return true; });
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
 
-    Animation i(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
+    Animation i(nullptr, nullptr, pins);
 
     // Set initial state
     i.setMotorDirection(MotorDirection::Forward);
@@ -266,20 +272,18 @@ void test_perform_rotate_pir_not_triggered_no_timeout()
 void test_perform_rotate_pir_not_triggered_timeout()
 {
     std::cout << "  Running test_perform_rotate_pir_not_triggered_timeout()" << std::endl;
-    // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
     Mock<AudioPlayer> audioPlayerMock;
+    // Create mock objects
     const AnimationPins pins = AnimationPins();
 
     When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
         .AlwaysDo([](const char* str) { return strlen(str); });
     When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
         .AlwaysDo([](const char* str) { return strlen(str) + 1; });
-    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return true; });
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
+    When(Method(audioPlayerMock, play)).AlwaysReturn(true);
 
-    Animation i(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
+    Animation i(nullptr, &audioPlayerMock.get(), pins);
 
     // Set initial state
     i.setMotorDirection(MotorDirection::Forward);
@@ -309,83 +313,21 @@ void test_perform_rotate_pir_not_triggered_timeout()
         .AtLeast(1);
 }
 
-void test_eyeBlink()
-{
-    std::cout << "  Running test_eyeBlink()" << std::endl;
-    // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
-    Mock<AudioPlayer> audioPlayerMock;
-    const AnimationPins pins = AnimationPins();
-
-    When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str); });
-    When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str) + 1; });
-    When(Method(pixelsMock, clear)).AlwaysReturn();
-    When(Method(pixelsMock, show)).AlwaysReturn();
-    When(Method(audioPlayerMock, play)).AlwaysDo([](int) { return true; });
-
-    Animation i(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
-    i.setCurrentTime(1234);
-
-    // Test case: ButtonCircle HIGH (rainbow starts)
-    i.setInputButtonCircle(HIGH);
-    i.eyeBlink();
-    TEST_ASSERT_TRUE(i.getIsRainbowActive());
-    // Test case: ButtonCircle LOW (rainbow stops)
-    i.setInputButtonCircle(LOW);
-    i.eyeBlink();
-    TEST_ASSERT_FALSE(i.getIsRainbowActive());
-    // Verify pixels cleared and shown
-    Verify(Method(pixelsMock, clear));
-    Verify(Method(pixelsMock, show));
-}
-
-void test_wheel()
-{
-    std::cout << "  Running test_wheel()" << std::endl;
-    // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
-    Mock<AudioPlayer> audioPlayerMock;
-    const AnimationPins pins = AnimationPins();
-    Animation i(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
-    // Check representative values
-    uint32_t c0 = i.wheel(0);
-    uint32_t c84 = i.wheel(84);
-    uint32_t c85 = i.wheel(85);
-    uint32_t c169 = i.wheel(169);
-    uint32_t c170 = i.wheel(170);
-    uint32_t c255 = i.wheel(255);
-    // These checks are for type and basic distinctness, not color correctness
-    TEST_ASSERT_NOT_EQUAL(c0, c84);
-    TEST_ASSERT_NOT_EQUAL(c84, c85);
-    TEST_ASSERT_NOT_EQUAL(c85, c169);
-    TEST_ASSERT_NOT_EQUAL(c169, c170);
-    TEST_ASSERT_NOT_EQUAL(c170, c255);
-}
-
 void test_updateSound()
 {
     std::cout << "  Running test_updateSound()" << std::endl;
     // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
     Mock<AudioPlayer> audioPlayerMock;
     const AnimationPins pins = AnimationPins();
     When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
         .AlwaysDo([](const char* str) { return strlen(str); });
     When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
         .AlwaysDo([](const char* str) { return strlen(str) + 1; });
-    When(Method(pixelsMock, setPixelColor)).AlwaysReturn();
-    When(Method(pixelsMock, show)).AlwaysReturn();
-    When(Method(pixelsMock, numPixels)).AlwaysReturn(3);
     // playRandomSound and update are the key methods
     When(Method(audioPlayerMock, playRandomSound)).AlwaysReturn();
     When(Method(audioPlayerMock, update)).AlwaysReturn();
 
-    Animation i(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
+    Animation i(nullptr, &audioPlayerMock.get(), pins);
 
     // Case 1: Button HIGH, not playing -> playRandomSound should be called
     i.setInputButtonRectangle(HIGH);
@@ -415,50 +357,9 @@ void test_updateSound()
     Verify(Method(audioPlayerMock, update)).Exactly(1);
 }
 
-void test_updateRainbow()
-{
-    std::cout << "  Running test_updateRainbow()" << std::endl;
-    // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
-    Mock<AudioPlayer> audioPlayerMock;
-    const AnimationPins pins = AnimationPins();
-    When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str); });
-    When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str) + 1; });
-    When(Method(pixelsMock, setPixelColor)).AlwaysReturn();
-    When(Method(pixelsMock, show)).AlwaysReturn();
-    When(Method(pixelsMock, numPixels)).AlwaysReturn(3);
-    When(Method(audioPlayerMock, play)).AlwaysDo([](int id) { return true; });
-
-    Animation i(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
-    i.setCurrentTime(1000);
-    i.setIsRainbowActive(true);
-    i.setRainbowTimer(980);  // so delta is 20ms
-    i.setRainbowIndex(0);
-
-    // Should update
-    i.updateRainbow();
-    Verify(Method(pixelsMock, show)).Exactly(1);
-    Verify(Method(pixelsMock, setPixelColor)).Exactly(3);
-    TEST_ASSERT_EQUAL(1, i.getRainbowIndex());
-
-    // Should not update if not active
-    i.setIsRainbowActive(false);
-    i.setRainbowIndex(42);
-    i.updateRainbow();
-    TEST_ASSERT_EQUAL(42, i.getRainbowIndex());
-}
-
 void test_rotate()
 {
     std::cout << "  Running test_rotate()" << std::endl;
-
-    // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
-    Mock<AudioPlayer> audioPlayerMock;
 
     // Setup mocks
     When(Method(ArduinoFake(), pinMode)).AlwaysReturn();
@@ -468,7 +369,7 @@ void test_rotate()
     AnimationPins pins;
 
     // Create animation object
-    Animation animation(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
+    Animation animation(nullptr, nullptr, pins);
 
     // Test 1: Forward direction
     {
@@ -518,10 +419,8 @@ void test_perform_rotate_backward_duration()
 {
     std::cout << "  Running test_perform_rotate_backward_duration()" << std::endl;
 
-    // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
     Mock<AudioPlayer> audioPlayerMock;
+    // Create mock objects
     const AnimationPins pins = AnimationPins();
 
     // Setup mocks
@@ -529,9 +428,9 @@ void test_perform_rotate_backward_duration()
         .AlwaysDo([](const char* str) { return strlen(str); });
     When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
         .AlwaysDo([](const char* str) { return strlen(str) + 1; });
-    When(Method(audioPlayerMock, play)).AlwaysReturn(true);
-    When(Method(audioPlayerMock, isPlaying)).AlwaysReturn(false);
-    When(Method(audioPlayerMock, stop)).AlwaysReturn();
+    // When(Method(audioPlayerMock, play)).AlwaysReturn(true);
+    // When(Method(audioPlayerMock, isPlaying)).AlwaysReturn(false);
+    // When(Method(audioPlayerMock, stop)).AlwaysReturn();
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
     When(OverloadedMethod(ArduinoFake(), random, long(long, long)))
         .AlwaysDo(
@@ -540,9 +439,10 @@ void test_perform_rotate_backward_duration()
                 return min;  // Return minimum speed for consistent testing
             });
     When(Method(ArduinoFake(), millis)).AlwaysReturn(0);
+    When(Method(audioPlayerMock, play)).AlwaysReturn(true);
 
     // Create animation object
-    Animation animation(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
+    Animation animation(nullptr, &audioPlayerMock.get(), pins);
 
     // Test case: Backward direction
     const unsigned long baseTime = 1000;
@@ -570,9 +470,6 @@ void test_set_rotation_direction_bias()
     std::cout << "  Running test_set_rotation_direction_bias()" << std::endl;
 
     // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
-    Mock<AudioPlayer> audioPlayerMock;
     const AnimationPins pins = AnimationPins();
 
     // Setup mocks
@@ -580,7 +477,6 @@ void test_set_rotation_direction_bias()
         .AlwaysDo([](const char* str) { return strlen(str); });
     When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
         .AlwaysDo([](const char* str) { return strlen(str) + 1; });
-    When(Method(audioPlayerMock, play)).AlwaysReturn();
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
 
     // Test cases for different bias scenarios
@@ -602,7 +498,7 @@ void test_set_rotation_direction_bias()
     for (const auto& tc : testCases)
     {
         // Create animation object for each test case
-        Animation animation(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
+        Animation animation(nullptr, nullptr, pins);
 
         // Set up test conditions
         const unsigned long baseTime = 10000;  // Arbitrary base time
@@ -651,7 +547,7 @@ void test_set_rotation_direction_bias()
 
     // Test timer expiration
     {
-        Animation animation(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
+        Animation animation(nullptr, nullptr, pins);
 
         const unsigned long baseTime = 10000;
         animation.setCurrentTime(baseTime);
@@ -670,13 +566,12 @@ void test_update()
     std::cout << "  Running test_update()" << std::endl;
 
     // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
-    Mock<AudioPlayer> audioPlayerMock;
+    Mock<EyeAnimation> pixelsMock;
     const AnimationPins pins = AnimationPins();
+    When(Method(pixelsMock, setCurrentTime)).AlwaysReturn();
 
     // Create animation object
-    Animation animation(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), pins);
+    Animation animation(&pixelsMock.get(), nullptr, pins);
 
     // Create test inputs
     AnimationInputs testInputs;
@@ -702,24 +597,21 @@ void test_update()
 void test_handle_pir_triggered_with_stopped_motor()
 {
     std::cout << "  Running test_handle_pir_triggered_with_stopped_motor()" << std::endl;
-
-    // Create mock objects
-    Stream* streamPtr = ArduinoFakeMock(Stream);
-    Mock<Adafruit_NeoPixel> pixelsMock;
     Mock<AudioPlayer> audioPlayerMock;
-    Animation obj(streamPtr, &pixelsMock.get(), &audioPlayerMock.get(), AnimationPins());
+    // Create mock objects
+    Animation obj(nullptr, &audioPlayerMock.get(), AnimationPins());
     Mock<Animation> spy(obj);
     When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
         .AlwaysDo([](const char* str) { return strlen(str); });
     When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
         .AlwaysDo([](const char* str) { return strlen(str) + 1; });
-    When(Method(audioPlayerMock, play)).AlwaysReturn();
     When(OverloadedMethod(ArduinoFake(), random, long(long, long)))
         .AlwaysDo(
             [](long min, long max)
             {
                 return 100;  // Return a small number to favor left direction
             });
+    When(Method(audioPlayerMock, play)).AlwaysReturn(true);
 
     // Set up test conditions
     Animation& animation = spy.get();
@@ -751,7 +643,7 @@ void test_handle_pir_triggered_with_stopped_motor()
 
 void runAnimationTests()
 {
-    UNITY_BEGIN();
+    std::cout << "\n==== Starting Animation Tests ====" << std::endl;
     RUN_TEST(test_animation_initialization);
     RUN_TEST(test_read_inputs);
     RUN_TEST(test_set_rotation_direction_with_sensor_trip);
@@ -762,11 +654,7 @@ void runAnimationTests()
     RUN_TEST(test_perform_rotate_backward_duration);
     RUN_TEST(test_perform_rotate_pir_not_triggered_no_timeout);
     RUN_TEST(test_perform_rotate_pir_not_triggered_timeout);
-    RUN_TEST(test_eyeBlink);
-    RUN_TEST(test_wheel);
-    RUN_TEST(test_updateRainbow);
-    RUN_TEST(test_updateSound);
     RUN_TEST(test_rotate);
     RUN_TEST(test_handle_pir_triggered_with_stopped_motor);
-    UNITY_END();
+    RUN_TEST(test_updateSound);
 }

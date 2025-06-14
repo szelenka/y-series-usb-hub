@@ -2,7 +2,6 @@
  * @file AudioPlayer.cpp
  * @brief Implementation of the AudioPlayer class
  */
-
 #include "AudioPlayer.h"
 
 AudioPlayer::AudioPlayer(ROMBackgroundAudioWAV* player) : m_player(player)
@@ -38,6 +37,7 @@ bool AudioPlayer::play(int index)
     }
 
     // Start playback
+    Log.info("Start playback: %d\n", index);
     const size_t writeResult = m_player->write(m_soundData[index], m_soundDataSizes[index]);
 
     if (writeResult > 0)
@@ -58,6 +58,7 @@ void AudioPlayer::stop()
     }
 
     m_player->flush();
+    Log.info("Stop playback: %d\n", m_currentSoundIndex);
     m_state = WAVState::Stopped;
     m_currentSoundIndex = -1;
 }

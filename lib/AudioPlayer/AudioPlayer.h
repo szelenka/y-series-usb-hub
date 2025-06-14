@@ -8,6 +8,7 @@
 
 #include <Arduino.h>
 #include <BackgroundAudioWAV.h>
+#include <Logger.h>
 #include <PWMAudio.h>
 #include <WavData.h>
 

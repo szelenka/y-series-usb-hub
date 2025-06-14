@@ -13,11 +13,12 @@
  */
 enum class LogLevel : uint8_t
 {
-    DEBUG,    ///< Detailed debug information
-    INFO,     ///< General operational messages
-    WARNING,  ///< Indicates potential issues
-    ERROR,    ///< Error conditions that might still allow the application to continue
-    CRITICAL  ///< Critical conditions that prevent normal operation
+    DEBUG,     ///< Detailed debug information
+    INFO,      ///< General operational messages
+    WARNING,   ///< Indicates potential issues
+    ERROR,     ///< Error conditions that might still allow the application to continue
+    CRITICAL,  ///< Critical conditions that prevent normal operation
+    NONE       ///< No logging
 };
 
 /**
@@ -30,14 +31,6 @@ enum class LogLevel : uint8_t
 class Logger
 {
 public:
-    /**
-     * @brief Global log level filter
-     *
-     * Messages with a level lower than this will not be logged.
-     * Default is LogLevel::INFO in release and LogLevel::DEBUG in debug builds.
-     */
-    static LogLevel s_logLevel;
-
     /**
      * @brief Construct a new Logger instance
      *
@@ -128,8 +121,7 @@ public:
     bool isLoggable(LogLevel level) const
     {
         return m_serial != nullptr &&
-               static_cast<uint8_t>(level) >= static_cast<uint8_t>(m_logLevel) &&
-               static_cast<uint8_t>(level) >= static_cast<uint8_t>(s_logLevel);
+               static_cast<uint8_t>(level) >= static_cast<uint8_t>(m_logLevel);
     }
 
 private:

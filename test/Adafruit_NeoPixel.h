@@ -10,6 +10,8 @@
 #define NEO_BRG ((1 << 6) | (1 << 4) | (2 << 2) | (0))  ///< Transmit as B,R,G
 #define NEO_BGR ((2 << 6) | (2 << 4) | (1 << 2) | (0))  ///< Transmit as B,G,R
 
+#include <Arduino.h>
+
 class Adafruit_NeoPixel
 {
 public:
@@ -19,6 +21,7 @@ public:
     virtual void show() = 0;
     virtual void setPixelColor(uint16_t n, uint32_t c) = 0;
     virtual void clear() = 0;
+    virtual uint32_t getPixelColor(uint16_t n) const = 0;
 
     virtual uint16_t numPixels() const { return numLEDs; }
 

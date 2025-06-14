@@ -11,9 +11,9 @@
 #define Y_SERIES_USB_HUB_ANIMATION_H
 
 #include <Arduino.h>
-#include <Adafruit_NeoPixel.h>
 #include <AudioPlayer.h>
 #include <Logger.h>
+#include "../EyeAnimation/EyeAnimation.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -132,26 +132,17 @@ public:
      * @brief Construct a new Animation controller
      *
      * Initializes the animation system with the specified hardware interfaces.
-     * The constructor sets up the logger and stores references to all required
-     * hardware components.
+     * The constructor sets up the required hardware components.
      *
-     * @param[in] serial Pointer to the Stream object used for debug logging
-     * @param[in] pixels Pointer to the NeoPixel controller for LED operations
-     * @param[in] audio Pointer to the AudioPlayer instance for sound effects
-     * @param[in] pins Pin configuration structure with all hardware pin assignments
-     *
-     * @note The caller is responsible for ensuring all pointer parameters remain
-     *       valid for the lifetime of the Animation object.
+     * @param eye Pointer to the EyeAnimation controller for LED operations
+     * @param audio Pointer to the AudioPlayer instance for sound effects
+     * @param pins Pin configuration structure with all hardware pin assignments
      */
-    Animation(Stream* serial, Adafruit_NeoPixel* pixels, AudioPlayer* audio,
-              const AnimationPins& pins)
-        : m_pixels(pixels), m_audioPlayer(audio), m_logger(serial, "[Animation] "), m_pins(pins)
+    Animation(EyeAnimation* eye, AudioPlayer* audio, const AnimationPins& pins)
+        : m_eyeAnimation(eye), m_audioPlayer(audio), m_pins(pins)
     {
         // Initialize member variables to default states
         m_motorDirection = MotorDirection::Stop;
-        m_rainbowIndex = 0;
-        m_rainbowTimer = 0;
-        m_isRainbowActive = false;
         m_currentTime = 0;
         m_lastPIRState = LOW;
         m_lastPIRTimer = 0;
@@ -230,15 +221,6 @@ public:
     /// @brief Get the timestamp of the last PIR sensor trigger
     unsigned long getLastPIRTimer() const { return m_lastPIRTimer; }
 
-    /// @brief Check if rainbow animation is currently active
-    bool getIsRainbowActive() const { return m_isRainbowActive; }
-
-    /// @brief Get the current position in the rainbow color cycle
-    uint8_t getRainbowIndex() const { return m_rainbowIndex; }
-
-    /// @brief Get the timer used for rainbow animation timing
-    unsigned long getRainbowTimer() const { return m_rainbowTimer; }
-
     /// @brief Get the previous state of the PIR sensor
     int8_t getLastPIRState() const { return m_lastPIRState; }
 
@@ -281,15 +263,6 @@ public:
     /// @brief Set the timestamp of the last PIR sensor trigger
     void setLastPIRTimer(unsigned long value) { m_lastPIRTimer = value; }
 
-    /// @brief Set whether rainbow animation is active
-    void setIsRainbowActive(bool value) { m_isRainbowActive = value; }
-
-    /// @brief Set the current position in the rainbow color cycle
-    void setRainbowIndex(uint8_t value) { m_rainbowIndex = value; }
-
-    /// @brief Set the rainbow animation timer
-    void setRainbowTimer(unsigned long value) { m_rainbowTimer = value; }
-
     /// @brief Set the previous state of the PIR sensor
     void setLastPIRState(int8_t value) { m_lastPIRState = value; }
 
@@ -329,25 +302,6 @@ public:
      */
     virtual void stop();
 
-    /**
-     * @brief Generates a color value for rainbow effects
-     *
-     * @param[in] pos Position in the color wheel (0-255)
-     * @return uint32_t Color value in 0x00RRGGBB format
-     *
-     * This implements a color wheel that smoothly transitions between
-     * red, green, and blue values to create rainbow effects.
-     */
-    virtual uint32_t wheel(uint8_t pos);
-
-    /**
-     * @brief Updates the rainbow LED animation
-     *
-     * Manages the timing and color progression of the rainbow effect.
-     * Should be called regularly for smooth animation.
-     */
-    virtual void updateRainbow();
-
     // Helper methods
     /**
      * @brief Handles actions when PIR sensor is triggered
@@ -368,9 +322,9 @@ public:
 protected:
     /// @name Hardware Interfaces
     /// @{
-    AnimationPins m_pins;                   ///< Pin configuration for all hardware components
-    Adafruit_NeoPixel* m_pixels = nullptr;  ///< Controller for NeoPixel LEDs
-    AudioPlayer* m_audioPlayer = nullptr;   ///< Audio playback controller
+    AnimationPins m_pins;                    ///< Pin configuration for all hardware components
+    EyeAnimation* m_eyeAnimation = nullptr;  ///< Controller for NeoPixel LEDs
+    AudioPlayer* m_audioPlayer = nullptr;    ///< Audio playback controller
     /// @}
 
     /// @name Motor Control State
@@ -393,17 +347,11 @@ protected:
     unsigned long m_lastPIRTimer;   ///< Timestamp of last PIR sensor trigger
     /// @}
 
-    /// @name LED Animation State
-    /// @{
-    uint8_t m_rainbowIndex;        ///< Current position in rainbow color cycle (0-255)
-    unsigned long m_rainbowTimer;  ///< Timer for rainbow animation timing
-    bool m_isRainbowActive;        ///< Flag indicating if rainbow animation is active
-    /// @}
-
     /// @name System State
     /// @{
-    Logger m_logger;              ///< Logging interface for debug output
-    unsigned long m_currentTime;  ///< Current system time from last update() call
+
+    unsigned long m_currentTime = 0;  ///< Current system time from last update() call
+
     /// @}
 };
 

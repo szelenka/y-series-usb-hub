@@ -14,6 +14,7 @@
 #include "AudioPlayer/test_AudioPlayer.cpp"
 #include "Logger/test_Logger.cpp"
 #include "WavData/test_WavData.cpp"
+#include "EyeAnimation/test_EyeAnimation.cpp"
 
 int main(int argc, char** argv)
 {
@@ -24,5 +25,6 @@ int main(int argc, char** argv)
     runAudioPlayerTests();
     runLoggerTests();
     runWavDataTests();
+    runEyeAnimationTests();
     return UNITY_END();
 }

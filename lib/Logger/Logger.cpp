@@ -13,13 +13,6 @@
 
 using namespace std;
 
-// Initialize static members
-#ifdef NDEBUG
-LogLevel Logger::s_logLevel = LogLevel::INFO;
-#else
-LogLevel Logger::s_logLevel = LogLevel::DEBUG;
-#endif
-
 // Global logger instance
 Logger Log(&Serial);
 
@@ -149,6 +142,8 @@ const char* Logger::levelToString(LogLevel level)
             return "ERROR";
         case LogLevel::CRITICAL:
             return "CRIT ";
+        case LogLevel::NONE:
+            return "NONE";
         default:
             return "?????";
     }
