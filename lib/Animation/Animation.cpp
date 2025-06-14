@@ -1,129 +1,186 @@
 /**
  * @file Animation.cpp
  * @brief Implementation of the Animation class for Y-Series USB Hub
+ * @author Scott Zelenka
+ * @date 2024-06-14
+ *
+ * @details
+ * This file contains the implementation of the Animation class which manages
+ * all animation and interaction behaviors of the Y-Series USB Hub.
+ * It handles motor control, sensor inputs, and coordinates with other
+ * system components like the LED animations and audio playback.
  */
 
+// System includes
 #include <Arduino.h>
 
+// Project includes
 #include "Animation.h"
-#include <Logger.h>
+#include "../Logger/Logger.h"
 
-// Use constants from Animation.h
+Animation::Animation(EyeAnimation* eye, AudioPlayer* audio, const AnimationPins& pins)
+    : m_eyeAnimation(eye),
+      m_audioPlayer(audio),
+      m_pins(pins),
+      m_motorDirection(MotorDirection::Stop),
+      m_lastLeftTurnTime(0),
+      m_lastRightTurnTime(0),
+      m_randomRotateTimer(0),
+      m_inputSensorLeft(0),
+      m_inputSensorRight(0),
+      m_inputPIRSensor(0),
+      m_lastPIRState(0),
+      m_inputButtonRectangle(0),
+      m_inputButtonCircle(0),
+      m_lastPIRTimer(0),
+      m_currentTime(0)
+{
+}
 
 void Animation::update(const AnimationInputs& inputs)
 {
+    // Update sensor states
     setInputSensorLeft(inputs.sensorLeft);
     setInputSensorRight(inputs.sensorRight);
     setInputPIRSensor(inputs.pirSensor);
     setInputButtonRectangle(inputs.buttonRectangle);
     setInputButtonCircle(inputs.buttonCircle);
     setCurrentTime(inputs.currentTime);
+
+    // Update eye animation time
     m_eyeAnimation->setCurrentTime(inputs.currentTime);
 }
 
 void Animation::rotate(uint8_t speed, MotorDirection direction)
 {
     // Constrain speed to valid range
-    const uint8_t safe_speed = std::min(speed, AnimationConstants::kMaxMotorSpeed);
+    const uint8_t safeSpeed = std::min(speed, AnimationConstants::kMaxMotorSpeed);
+
+    // Apply minimum speed if moving
+    const uint8_t effectiveSpeed = (direction != MotorDirection::Stop)
+                                       ? std::max(safeSpeed, AnimationConstants::kMinSpeed)
+                                       : 0;
+
+    // Control motor based on direction
     switch (direction)
     {
         case MotorDirection::Forward:
-            analogWrite(m_pins.neckMotorIn1, safe_speed);
+            analogWrite(m_pins.neckMotorIn1, effectiveSpeed);
             analogWrite(m_pins.neckMotorIn2, LOW);
             break;
 
         case MotorDirection::Backward:
-            analogWrite(m_pins.neckMotorIn2, safe_speed);
+            analogWrite(m_pins.neckMotorIn2, effectiveSpeed);
             analogWrite(m_pins.neckMotorIn1, LOW);
             break;
 
         case MotorDirection::Stop:
         default:
             stop();
-            break;
+            return;  // Early return to avoid updating direction
+    }
+
+    // Update direction state if it has changed
+    if (m_motorDirection != direction)
+    {
+        m_motorDirection = direction;
+        Log.info("Motor direction changed to: %d", static_cast<int>(direction));
     }
 }
 
 void Animation::stop()
 {
-    // Ensure both motor control pins are set to LOW to stop the motor
-    analogWrite(m_pins.neckMotorIn1, LOW);
-    analogWrite(m_pins.neckMotorIn2, LOW);
+    // Only update if we're not already stopped
+    if (m_motorDirection != MotorDirection::Stop)
+    {
+        // Set both motor control pins to LOW to stop the motor
+        analogWrite(m_pins.neckMotorIn1, LOW);
+        analogWrite(m_pins.neckMotorIn2, LOW);
 
-    // Update motor state
-    m_motorDirection = MotorDirection::Stop;
+        // Update motor state
+        m_motorDirection = MotorDirection::Stop;
+        Log.info("Motor stopped");
+    }
 }
 
-// Using direction bias timing constants from Animation.h
-
-/**
- * @brief Sets the rotation direction based on sensor input and timing
- *
- * This method implements the core logic for determining the motor's rotation direction.
- * It considers sensor inputs and timing to create natural-looking movement patterns.
- */
 void Animation::setRotationDirection()
 {
-    // Check if either limit sensor is triggered
+    // Check limit sensors first - these take highest priority
     if (m_inputSensorLeft == LOW)
     {
-        // Reverse direction when hitting a limit
+        // If left sensor is triggered, ensure we move right (forward)
         m_motorDirection = MotorDirection::Forward;
-        m_randomRotateTimer = 750;
+        m_randomRotateTimer = 750;  // Give enough time to move away from the limit
+        Log.debug("Left limit hit, moving right");
         return;
     }
     else if (m_inputSensorRight == LOW)
     {
-        // Reverse direction when hitting a limit
+        // If right sensor is triggered, ensure we move left (backward)
         m_motorDirection = MotorDirection::Backward;
-        m_randomRotateTimer = 750;
+        m_randomRotateTimer = 750;  // Give enough time to move away from the limit
+        Log.debug("Right limit hit, moving left");
+        return;
     }
 
     // If no sensor is triggered, handle random direction changes
     if (m_randomRotateTimer == 0)
     {
-        // Random direction selection with bias based on time since last turn
-        uint32_t timeSinceLeft = m_currentTime - m_lastLeftTurnTime;
-        uint32_t timeSinceRight = m_currentTime - m_lastRightTurnTime;
+        // Calculate time since last turn in each direction
+        const uint32_t timeSinceLeft = m_currentTime - m_lastLeftTurnTime;
+        const uint32_t timeSinceRight = m_currentTime - m_lastRightTurnTime;
 
-        // Calculate direction bias based on time since last turn in each direction
+        // Initialize biases with default values
         float leftBias = AnimationConstants::kNormalBias;
         float rightBias = AnimationConstants::kNormalBias;
 
-        // Apply stronger bias if we've been turning in one direction for too long
+        // Apply stronger bias based on time since last turn in each direction
         if (timeSinceLeft < AnimationConstants::kMinDirectionTime)
         {
-            leftBias = AnimationConstants::kStrongBias;  // Keep turning left
+            // Recent left turn, bias toward continuing left
+            leftBias = AnimationConstants::kStrongBias;
+            Log.debug("Strong left bias (recent turn)");
         }
         else if (timeSinceLeft > AnimationConstants::kMaxDirectionTime)
         {
-            leftBias = AnimationConstants::kStrongerBias;  // Strong preference to turn left
+            // It's been a long time since left turn, strongly prefer left
+            rightBias = AnimationConstants::kStrongerBias;
+            Log.debug("Strong right bias (long time since left turn)");
         }
 
         if (timeSinceRight < AnimationConstants::kMinDirectionTime)
         {
-            rightBias = AnimationConstants::kStrongBias;  // Keep turning right
+            // Recent right turn, bias toward continuing right
+            rightBias = AnimationConstants::kStrongBias;
+            Log.debug("Strong right bias (recent turn)");
         }
         else if (timeSinceRight > AnimationConstants::kMaxDirectionTime)
         {
-            rightBias = AnimationConstants::kStrongerBias;  // Strong preference to turn right
+            // It's been a long time since right turn, strongly prefer right
+            leftBias = AnimationConstants::kStrongerBias;
+            Log.debug("Strong left bias (long time since right turn)");
         }
 
-        // Weighted random direction selection
-        float total = leftBias + rightBias;
-        float randomValue = random(0, 1000) / 1000.0f * total;
-
+        // Calculate total bias and make weighted random decision
+        const float totalBias = leftBias + rightBias;
+        const float randomValue = random(1000) / 1000.0f * totalBias;
+        std::cout << "Random value: " << randomValue << ", total bias: " << totalBias << std::endl;
+        // Select direction based on weighted random value
         if (randomValue < leftBias)
         {
-            m_motorDirection = MotorDirection::Forward;
+            std::cout << "Selected LEFT direction (" << randomValue << "/" << leftBias << ")"
+                      << std::endl;
+            m_motorDirection = MotorDirection::Backward;  // Left
             m_lastLeftTurnTime = m_currentTime;
-            Log.debug("[Animation] Random direction chosen: Forward (bias=%.1f)", leftBias);
+            Log.debug("Selected LEFT direction (%.2f/%.2f)", randomValue, leftBias);
         }
         else
         {
-            m_motorDirection = MotorDirection::Backward;
+            std::cout << "Selected RIGHT direction (" << randomValue - leftBias << "/" << rightBias
+                      << ")" << std::endl;
+            m_motorDirection = MotorDirection::Forward;  // Right
             m_lastRightTurnTime = m_currentTime;
-            Log.debug("[Animation] Random direction chosen: Backward (bias=%.1f)", rightBias);
+            Log.debug("Selected RIGHT direction (%.2f/%.2f)", randomValue - leftBias, rightBias);
         }
 
         // Set timer for next direction change
@@ -156,14 +213,28 @@ void Animation::performRotate()
     // Handle PIR sensor state
     if (m_inputPIRSensor == HIGH)
     {
+        // Motion detected
         digitalWrite(m_pins.domeLedGreen, HIGH);
         setRotationDirection();
         handlePirTriggered();
+
+        // Apply movement based on current direction
+        if (m_motorDirection != MotorDirection::Stop)
+        {
+            rotate(AnimationConstants::kMaxMotorSpeed, m_motorDirection);
+        }
     }
     else
     {
+        // No motion detected
         digitalWrite(m_pins.domeLedGreen, LOW);
         handlePirInactive();
+
+        // Stop motor when no motion is detected
+        if (m_motorDirection != MotorDirection::Stop)
+        {
+            stop();
+        }
     }
 }
 
@@ -172,21 +243,37 @@ void Animation::performRotate()
  */
 void Animation::handlePirTriggered()
 {
-    // Play sound effect when motion is first detected
+    // Check for rising edge of PIR sensor (LOW -> HIGH)
     if (m_lastPIRState == LOW)
     {
-        m_audioPlayer->play(4);
-        Log.info("[Animation] Motion detected, starting rotation");
+        // This is a new motion detection event
+        Log.info("Motion detected, starting rotation");
+
+        // Play sound effect if audio player is available
+        if (m_audioPlayer != nullptr)
+        {
+            m_audioPlayer->play(4);  // Play sound effect with ID 4
+        }
+
+        // Reset timers for fresh movement
+        m_randomRotateTimer = 0;
     }
 
-    // Reset the inactivity timer
+    // Update PIR state and reset the inactivity timer
     m_lastPIRState = HIGH;
     m_lastPIRTimer = m_currentTime;
 
-    // Calculate direction duration for speed biasing
-    const uint32_t directionDuration = (m_motorDirection == MotorDirection::Forward)
-                                           ? m_currentTime - m_lastLeftTurnTime
-                                           : m_currentTime - m_lastRightTurnTime;
+    // Calculate how long we've been moving in the current direction
+    const bool isMovingLeft = (m_motorDirection == MotorDirection::Backward);
+    const uint32_t directionDuration =
+        m_currentTime - (isMovingLeft ? m_lastLeftTurnTime : m_lastRightTurnTime);
+
+    // If we've been going in one direction too long, force a direction change
+    if (directionDuration > AnimationConstants::kMaxDirectionTime)
+    {
+        Log.debug("Forcing direction change after %lums", directionDuration);
+        m_randomRotateTimer = 0;  // Trigger direction change on next update
+    }
 
     // Calculate speed with bell curve biasing (slow at start/end, faster in middle)
     const float t = std::min(directionDuration, AnimationConstants::kSpeedRampTime) /
@@ -203,12 +290,6 @@ void Animation::handlePirTriggered()
         random(AnimationConstants::kMinSpeed,
                std::min(biasedSpeed + 1, static_cast<int>(AnimationConstants::kMaxMotorSpeed)));
 
-    // Set the motor direction and speed
-    if (m_motorDirection == MotorDirection::Stop)
-    {
-        setRotationDirection();
-    }
-
     rotate(static_cast<uint8_t>(randomSpeed), m_motorDirection);
 
     Log.debug("[Animation] Motor speed: %d (bias=%.2f, duration=%dms)", randomSpeed, speedBias,
@@ -220,24 +301,32 @@ void Animation::handlePirTriggered()
  */
 void Animation::handlePirInactive()
 {
-    // Update state if we just transitioned from active to inactive
+    // Check for falling edge of PIR sensor (HIGH -> LOW)
     if (m_lastPIRState == HIGH)
     {
-        Log.info("[Animation] Motion no longer detected, starting inactivity timer");
+        Log.info("Motion no longer detected, starting inactivity timer");
+
+        // Reset timers and state for next activation
+        m_randomRotateTimer = 0;
+        stop();
     }
+
+    // Update PIR state
     m_lastPIRState = LOW;
 
-    // Check if we've been inactive too long
-    if (m_currentTime - m_lastPIRTimer >= AnimationConstants::kInactivityTimeout)
+    // Check if we've been inactive too long and need to fully stop
+    const uint32_t inactiveTime = m_currentTime - m_lastPIRTimer;
+    if (inactiveTime >= AnimationConstants::kInactivityTimeout)
     {
-        // Only stop if we're not already stopped
         if (m_motorDirection != MotorDirection::Stop)
         {
-            m_audioPlayer->play(10);
+            Log.info("Inactivity timeout reached, stopping motor");
             stop();
-            Log.info("[Animation] Stopping motor after %dms of inactivity",
-                     AnimationConstants::kInactivityTimeout);
         }
+    }
+    else
+    {
+        Log.debug("Inactive for %lums/%lums", inactiveTime, AnimationConstants::kInactivityTimeout);
     }
 }
 

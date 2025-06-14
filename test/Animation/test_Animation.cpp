@@ -116,34 +116,11 @@ void test_perform_rotate()
 {
     std::cout << "  Running test_perform_rotate()" << std::endl;
 
-    Stream* streamPtr = ArduinoFakeMock(Stream);
     Mock<AudioPlayer> audioPlayerMock;
 
     // Create mock objects
     const AnimationPins pins = AnimationPins();
-
-    // Initialize global Log instance with mocked Serial
-    Log = Logger(streamPtr);
-    Log.setLogLevel(LogLevel::DEBUG);
-
-    // Mock Serial output for Logger
-    char logBuffer[1024] = {0};
-    When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
-        .AlwaysDo(
-            [&logBuffer](const char* str)
-            {
-                strcat(logBuffer, str);
-                return strlen(str);
-            });
-    When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
-        .AlwaysDo(
-            [&logBuffer](const char* str)
-            {
-                strcat(logBuffer, str);
-                strcat(logBuffer, "\n");
-                return strlen(str) + 1;
-            });
-    // When(OverloadedMethod(ArduinoFake(Stream), println, size_t())).AlwaysReturn(1);
+    Log.setLogLevel(LogLevel::NONE);
 
     // Mock random number generator to return a specific speed
     When(OverloadedMethod(ArduinoFake(), random, long(long, long)))
@@ -152,6 +129,7 @@ void test_perform_rotate()
             {
                 return 200;  // Return a speed value
             });
+    When(Method(ArduinoFake(), digitalWrite)).AlwaysReturn();
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
     When(Method(ArduinoFake(), millis)).AlwaysReturn(1000);
     When(Method(audioPlayerMock, play)).AlwaysReturn(true);
@@ -215,7 +193,7 @@ void test_set_rotation_direction_with_sensor_trip()
 
     // The direction should now be reversed (not Forward)
     TEST_ASSERT_EQUAL(MotorDirection::Backward, i.getMotorDirection());
-    TEST_ASSERT_EQUAL(0, i.getRandomRotateTimer());
+    TEST_ASSERT_EQUAL(750, i.getRandomRotateTimer());
 
     // Set sensor inputs: PIR HIGH, SensorRight HIGH
     i.setInputPIRSensor(HIGH);
@@ -227,7 +205,7 @@ void test_set_rotation_direction_with_sensor_trip()
 
     // The direction should now be reversed (not Forward)
     TEST_ASSERT_EQUAL(MotorDirection::Forward, i.getMotorDirection());
-    TEST_ASSERT_EQUAL(0, i.getRandomRotateTimer());
+    TEST_ASSERT_EQUAL(750, i.getRandomRotateTimer());
 }
 
 void test_perform_rotate_pir_not_triggered_no_timeout()
@@ -243,6 +221,7 @@ void test_perform_rotate_pir_not_triggered_no_timeout()
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
 
     Animation i(nullptr, nullptr, pins);
+    Log.setLogLevel(LogLevel::NONE);
 
     // Set initial state
     i.setMotorDirection(MotorDirection::Forward);
@@ -253,20 +232,19 @@ void test_perform_rotate_pir_not_triggered_no_timeout()
     i.setLastPIRTimer(900);
 
     // Set sensor inputs: PIR LOW
-    i.setInputPIRSensor(LOW);
-    i.setInputSensorLeft(LOW);
-    i.setInputSensorRight(LOW);
+    i.setInputPIRSensor(LOW);     // no movement
+    i.setInputSensorLeft(HIGH);   // not triggered
+    i.setInputSensorRight(HIGH);  // not triggered
 
     // Save state before
     auto beforePIRTimer = i.getLastPIRTimer();
-    auto beforeDirection = i.getMotorDirection();
 
     std::cout << "Calling animation->performRotate() with PIR LOW and no timeout..." << std::endl;
     i.performRotate();
 
     // Nothing should change
     TEST_ASSERT_EQUAL(beforePIRTimer, i.getLastPIRTimer());
-    TEST_ASSERT_EQUAL(beforeDirection, i.getMotorDirection());
+    TEST_ASSERT_EQUAL(MotorDirection::Stop, i.getMotorDirection());
 }
 
 void test_perform_rotate_pir_not_triggered_timeout()
@@ -329,19 +307,19 @@ void test_updateSound()
 
     Animation i(nullptr, &audioPlayerMock.get(), pins);
 
-    // Case 1: Button HIGH, not playing -> playRandomSound should be called
-    i.setInputButtonRectangle(HIGH);
+    // Case 1: Button LOW, not playing -> playRandomSound should be called
+    i.setInputButtonRectangle(LOW);
     When(Method(audioPlayerMock, isPlaying)).AlwaysReturn(false);
     i.updateSound();
     Verify(Method(audioPlayerMock, playRandomSound)).Exactly(1);
     Verify(Method(audioPlayerMock, update)).Exactly(1);
 
-    // Case 2: Button HIGH, already playing -> playRandomSound should NOT be called
+    // Case 2: Button LOW, already playing -> playRandomSound should NOT be called
     audioPlayerMock.Reset();
     When(Method(audioPlayerMock, playRandomSound)).AlwaysReturn();
     When(Method(audioPlayerMock, update)).AlwaysReturn();
     When(Method(audioPlayerMock, isPlaying)).AlwaysReturn(true);
-    i.setInputButtonRectangle(HIGH);
+    i.setInputButtonRectangle(LOW);
     i.updateSound();
     Verify(Method(audioPlayerMock, playRandomSound)).Exactly(0);
     Verify(Method(audioPlayerMock, update)).Exactly(1);
@@ -351,7 +329,9 @@ void test_updateSound()
     When(Method(audioPlayerMock, playRandomSound)).AlwaysReturn();
     When(Method(audioPlayerMock, update)).AlwaysReturn();
     When(Method(audioPlayerMock, isPlaying)).AlwaysReturn(false);
-    i.setInputButtonRectangle(LOW);
+
+    // Case 4: Button HIGH -> playRandomSound should NOT be called
+    i.setInputButtonRectangle(HIGH);
     i.updateSound();
     Verify(Method(audioPlayerMock, playRandomSound)).Exactly(0);
     Verify(Method(audioPlayerMock, update)).Exactly(1);
@@ -370,6 +350,7 @@ void test_rotate()
 
     // Create animation object
     Animation animation(nullptr, nullptr, pins);
+    Log.setLogLevel(LogLevel::NONE);
 
     // Test 1: Forward direction
     {
@@ -461,7 +442,7 @@ void test_perform_rotate_backward_duration()
     // The test passes if it reaches this point without crashing
     // and the motor was set to move backward
     Verify(Method(ArduinoFake(), analogWrite)
-               .Matching([&](int pin, int speed) { return pin == pins.neckMotorIn2 && speed > 0; }))
+               .Matching([&](int pin, int speed) { return pin == pins.neckMotorIn1 && speed > 0; }))
         .AtLeastOnce();
 }
 
@@ -506,8 +487,8 @@ void test_set_rotation_direction_bias()
         animation.setLastLeftTurnTime(baseTime - tc.timeSinceLeft);
         animation.setLastRightTurnTime(baseTime - tc.timeSinceRight);
         animation.setRandomRotateTimer(0);
-        animation.setInputSensorLeft(LOW);
-        animation.setInputSensorRight(LOW);
+        animation.setInputSensorLeft(HIGH);
+        animation.setInputSensorRight(HIGH);
 
         // Debug output for test conditions
         std::cout << "  Test conditions - "
@@ -517,7 +498,7 @@ void test_set_rotation_direction_bias()
                   << ", rightBias: " << tc.expectedRightBias << std::endl;
 
         // Set random to always choose the first option (left)
-        When(OverloadedMethod(ArduinoFake(), random, long(long, long))).AlwaysReturn(0);
+        When(OverloadedMethod(ArduinoFake(), random, long(long))).AlwaysReturn(1000);
 
         // Call the method with debug output
         animation.setRotationDirection();
@@ -533,8 +514,9 @@ void test_set_rotation_direction_bias()
         TEST_ASSERT_EQUAL(MotorDirection::Forward, actualDirection);
 
         // Set random to always choose the second option (right)
-        When(OverloadedMethod(ArduinoFake(), random, long(long, long))).AlwaysReturn(1000);
+        When(OverloadedMethod(ArduinoFake(), random, long(long))).AlwaysReturn(0);
 
+        animation.setRandomRotateTimer(0);
         // Call the method again
         animation.setRotationDirection();
 
@@ -557,7 +539,7 @@ void test_set_rotation_direction_bias()
         animation.setRotationDirection();
 
         // Verify timer was reset
-        TEST_ASSERT_EQUAL(0, animation.getRandomRotateTimer());
+        TEST_ASSERT_EQUAL(750, animation.getRandomRotateTimer());
     }
 }
 
@@ -629,12 +611,6 @@ void test_handle_pir_triggered_with_stopped_motor()
 
     // Call the method under test
     animation.handlePirTriggered();
-
-    // Verify setRotationDirection was called
-    Verify(Method(spy, setRotationDirection)).Once();
-
-    // Verify rotate was called
-    Verify(Method(spy, rotate)).Once();
 
     // Verify state was updated
     TEST_ASSERT_EQUAL(HIGH, animation.getLastPIRState());

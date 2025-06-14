@@ -1,46 +1,75 @@
 /**
  * @file Logger.h
- * @brief A lightweight logging utility for Arduino and embedded systems
+ * @brief Lightweight logging utility for the Y-Series USB Hub
+ * @author Scott Zelenka
+ * @date 2024-06-14
+ *
+ * @details
+ * This file defines the Logger class which provides a flexible and efficient
+ * logging solution for Arduino-based projects. It supports multiple log levels,
+ * custom output streams, and formatted message output.
+ *
+ * The Logger is responsible for:
+ * - Supporting multiple log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+ * - Outputting to any Stream-compatible interface (Serial, SoftwareSerial, etc.)
+ * - Providing formatted string output with variable arguments
+ * - Allowing per-instance log level filtering
  */
 
-#ifndef LOGGER_H
-#define LOGGER_H
+#ifndef Y_SERIES_USB_HUB_LOGGER_H
+#define Y_SERIES_USB_HUB_LOGGER_H
 
+// System includes
 #include <Arduino.h>
 
 /**
- * @brief Logging levels for different severity of messages
+ * @brief Enumerates the severity levels for log messages
+ *
+ * This enum class defines the different levels of logging severity,
+ * from detailed debugging information to critical errors that may
+ * prevent normal operation.
  */
 enum class LogLevel : uint8_t
 {
-    DEBUG,     ///< Detailed debug information
-    INFO,      ///< General operational messages
-    WARNING,   ///< Indicates potential issues
-    ERROR,     ///< Error conditions that might still allow the application to continue
-    CRITICAL,  ///< Critical conditions that prevent normal operation
-    NONE       ///< No logging
+    DEBUG = 0,     ///< Detailed debug information for development
+    INFO = 1,      ///< General operational messages
+    WARNING = 2,   ///< Indicates potential issues that don't prevent operation
+    ERROR = 3,     ///< Error conditions that might affect functionality
+    CRITICAL = 4,  ///< Critical conditions that prevent normal operation
+    NONE = 5       ///< No logging (turns off all output)
 };
 
 /**
- * @brief A simple logging class that supports different log levels and output streams
+ * @brief Provides flexible logging functionality with multiple severity levels
  *
- * This class provides a flexible logging solution that can be used across different
- * Arduino projects. It supports different log levels and can output to any Stream
- * compatible output (Serial, SoftwareSerial, etc.).
+ * @details
+ * The Logger class implements a thread-safe logging mechanism that supports
+ * multiple output streams and configurable log levels. It's designed to be
+ * lightweight enough for embedded systems while providing rich functionality.
+ *
+ * Features:
+ * - Multiple log levels with compile-time filtering
+ * - Support for any Stream-compatible output
+ * - Formatted string output (printf-style)
+ * - Optional message prefixing
+ * - Global instance for convenience
  */
 class Logger
 {
 public:
+    /// @name Construction and Assignment
+    /// @{
+
     /**
      * @brief Construct a new Logger instance
      *
-     * @param serial Pointer to a Stream object for output (e.g., &Serial)
-     * @param prefix Optional prefix for log messages (default: empty)
+     * @param[in] serial Pointer to the Stream object for output (e.g., &Serial)
+     * @param[in] prefix Optional prefix for all log messages (default: empty)
+     *
+     * @note The Stream object must remain valid for the lifetime of the Logger
+     * @warning Passing a null Stream pointer will result in no output
      */
-    explicit Logger(Stream* serial, const char* prefix = "")
-        : m_serial(serial), m_prefix(prefix), m_logLevel(LogLevel::INFO)
-    {
-    }
+    explicit Logger(Stream* serial, const char* prefix = "");
 
     // Prevent copying
     Logger(const Logger&) = delete;
@@ -50,73 +79,95 @@ public:
     Logger(Logger&&) = default;
     Logger& operator=(Logger&&) = default;
 
+    /// @}
+
+    /// @name Logging Methods
+    /// @{
+
     /**
-     * @brief Log a formatted message with DEBUG level
+     * @brief Log a debug message
      *
-     * @param format Format string (printf-style)
-     * @param ... Format arguments
+     * @param[in] format Format string (printf-style)
+     * @param[in] ... Arguments for the format string
+     *
+     * @note Only logged if current log level is DEBUG or lower
      */
     void debug(const char* format, ...) const;
 
     /**
-     * @brief Log a formatted message with INFO level
+     * @brief Log an informational message
      *
-     * @param format Format string (printf-style)
-     * @param ... Format arguments
+     * @param[in] format Format string (printf-style)
+     * @param[in] ... Arguments for the format string
+     *
+     * @note Only logged if current log level is INFO or lower
      */
     void info(const char* format, ...) const;
 
     /**
-     * @brief Log a formatted message with WARNING level
+     * @brief Log a warning message
      *
-     * @param format Format string (printf-style)
-     * @param ... Format arguments
+     * @param[in] format Format string (printf-style)
+     * @param[in] ... Arguments for the format string
+     *
+     * @note Only logged if current log level is WARNING or lower
      */
     void warning(const char* format, ...) const;
 
     /**
-     * @brief Log a formatted message with ERROR level
+     * @brief Log an error message
      *
-     * @param format Format string (printf-style)
-     * @param ... Format arguments
+     * @param[in] format Format string (printf-style)
+     * @param[in] ... Arguments for the format string
+     *
+     * @note Only logged if current log level is ERROR or lower
      */
     void error(const char* format, ...) const;
 
     /**
-     * @brief Log a formatted message with CRITICAL level
+     * @brief Log a critical error message
      *
-     * @param format Format string (printf-style)
-     * @param ... Format arguments
+     * @param[in] format Format string (printf-style)
+     * @param[in] ... Arguments for the format string
+     *
+     * @note Always logged unless log level is set to NONE
      */
     void critical(const char* format, ...) const;
 
     /**
-     * @brief Log a raw message without any formatting or level prefix
+     * @brief Output a raw message without any formatting
      *
-     * @param message The message to log
+     * @param[in] message The message to output
+     *
+     * @note Not affected by log level settings
      */
     void raw(const char* message) const;
 
+    /// @}
+
+    /// @name Log Level Management
+    /// @{
+
     /**
-     * @brief Set the log level for this logger instance
+     * @brief Set the minimum log level for this logger
      *
-     * @param level The minimum log level to output
+     * @param[in] level Minimum level to log (messages below this level are filtered)
      */
     void setLogLevel(LogLevel level) { m_logLevel = level; }
 
     /**
-     * @brief Get the current log level for this logger instance
+     * @brief Get the current log level
      *
-     * @return LogLevel The current log level
+     * @return LogLevel Current minimum log level
      */
     LogLevel getLogLevel() const { return m_logLevel; }
 
     /**
-     * @brief Check if a log level would be output with current settings
+     * @brief Check if a message with the given level would be logged
      *
-     * @param level The log level to check
-     * @return true If the level would be logged
-     * @return false If the level would be filtered out
+     * @param[in] level The log level to check
+     * @return true If a message with this level would be logged
+     * @return false If the message would be filtered out
      */
     bool isLoggable(LogLevel level) const
     {
@@ -124,30 +175,45 @@ public:
                static_cast<uint8_t>(level) >= static_cast<uint8_t>(m_logLevel);
     }
 
+    /// @}
+
 private:
+    /// @name Internal Implementation
+    /// @{
+
     /**
      * @brief Internal method to handle the actual logging
      *
-     * @param level The log level
-     * @param format Format string (printf-style)
-     * @param args Variable arguments for the format string
+     * @param[in] level Severity level of the message
+     * @param[in] format Format string (printf-style)
+     * @param[in] args Variable arguments for the format string
      */
     void log(LogLevel level, const char* format, va_list args) const;
 
     /**
-     * @brief Get the string representation of a log level
+     * @brief Convert a LogLevel to its string representation
      *
-     * @param level The log level
+     * @param[in] level The log level to convert
      * @return const char* String representation of the level
      */
     static const char* levelToString(LogLevel level);
 
+    /// @}
+
+    /// @name Member Variables
+    /// @{
     Stream* m_serial;      ///< Output stream for log messages
-    const char* m_prefix;  ///< Prefix for log messages
-    LogLevel m_logLevel;   ///< Instance-specific log level
+    const char* m_prefix;  ///< Optional prefix for all messages
+    LogLevel m_logLevel;   ///< Current minimum log level
+    /// @}
 };
 
-// Global logger instance for convenience
+/**
+ * @brief Global Logger instance for convenience
+ *
+ * @note This is the primary logger instance used throughout the application.
+ *       It's initialized to use the default Serial port with no prefix.
+ */
 extern Logger Log;
 
-#endif  // LOGGER_H
+#endif  // Y_SERIES_USB_HUB_LOGGER_H

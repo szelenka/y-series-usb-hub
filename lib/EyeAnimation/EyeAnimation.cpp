@@ -1,26 +1,51 @@
+/**
+ * @file EyeAnimation.cpp
+ * @brief Implementation of the EyeAnimation class for Y-Series USB Hub
+ * @author Scott Zelenka
+ * @date 2024-06-14
+ *
+ * @details
+ * This file implements the EyeAnimation class which manages LED animations for
+ * the Y-Series USB Hub's eye display. It handles all the low-level details of
+ * NeoPixel control while providing smooth, visually appealing eye animations.
+ */
+
 #include "EyeAnimation.h"
 
-EyeAnimation::EyeAnimation(Adafruit_NeoPixel* pixels) : m_pixels(pixels)
+// Constants
+namespace
 {
-    m_rainbowIndex = 0;
-    m_rainbowTimer = 0;
-    m_defaultColor = 0x000080;  // Default: dark blue
-    m_brightness = 255;
-    m_currentTime = 0;
+constexpr uint32_t DEFAULT_EYE_COLOR = 0x000080;       // Dark blue
+constexpr uint16_t NUM_PIXELS = 16;                    // Number of LEDs in the eye ring
+constexpr uint8_t DEFAULT_BRIGHTNESS = 255;            // Maximum brightness
+constexpr unsigned long DEFAULT_BLINK_DURATION = 300;  // ms for a complete blink
+}  // namespace
 
-    // Initialize blink state
-    m_isBlinking = false;
-    m_blinkStartTime = 0;
-    m_blinkDuration = 300;  // Default 300ms blink (longer for wave effect)
-    m_blinkPhase = 0;
-    m_blinkProgress = 0.0f;
-    m_topPixel1 = 0;       // Default top pixels
-    m_topPixel2 = 15;      // Default top pixels (opposite sides)
-    m_blinkCount = 0;      // Number of blinks
-    m_blinkEndTime = 0;    // Timestamp of last blink
-    m_nextBlinkDelay = 0;  // Delay until next blink
-
-    for (int i = 0; i < 16; i++)
+/**
+ * @brief Construct a new EyeAnimation object
+ *
+ * @param[in] pixels Pointer to the Adafruit_NeoPixel instance
+ */
+EyeAnimation::EyeAnimation(Adafruit_NeoPixel* pixels)
+    : m_pixels(pixels),
+      m_rainbowIndex(0),
+      m_rainbowTimer(0),
+      m_defaultColor(DEFAULT_EYE_COLOR),
+      m_brightness(DEFAULT_BRIGHTNESS),
+      m_currentTime(0),
+      m_isBlinking(false),
+      m_blinkStartTime(0),
+      m_blinkDuration(DEFAULT_BLINK_DURATION),
+      m_blinkEndTime(0),
+      m_blinkPhase(0),
+      m_blinkProgress(0.0f),
+      m_topPixel1(0),
+      m_topPixel2(NUM_PIXELS - 1),
+      m_nextBlinkDelay(0),
+      m_blinkCount(0)
+{
+    // Initialize pixel progress and order arrays
+    for (uint8_t i = 0; i < NUM_PIXELS; i++)
     {
         m_pixelProgress[i] = 0.0f;
         m_pixelOrder[i] = i;  // Default order (will be updated by setTopPixels)
@@ -33,123 +58,217 @@ EyeAnimation::EyeAnimation(Adafruit_NeoPixel* pixels) : m_pixels(pixels)
     setAllPixelsColor(0);
 }
 
+/**
+ * @brief Set the default eye color
+ *
+ * @param[in] r Red component (0-255)
+ * @param[in] g Green component (0-255)
+ * @param[in] b Blue component (0-255)
+ */
 void EyeAnimation::setDefaultColor(uint8_t r, uint8_t g, uint8_t b)
 {
-    m_defaultColor = ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
+    m_defaultColor = ((static_cast<uint32_t>(r) << 16) | (static_cast<uint32_t>(g) << 8) |
+                      static_cast<uint32_t>(b));
 }
 
+/**
+ * @brief Set the global brightness for all LEDs
+ *
+ * @param[in] brightness Brightness value (0-255)
+ */
 void EyeAnimation::setBrightness(uint8_t brightness)
 {
     m_brightness = brightness;
 }
 
+/**
+ * @brief Update the eyes with a rainbow animation effect
+ *
+ * @note This should be called regularly from the main loop
+ */
 void EyeAnimation::updateRainbow()
 {
+    if (!m_pixels)
+        return;
+
     m_rainbowTimer = m_currentTime;
 
     // Calculate new color for each pixel
     for (uint16_t i = 0; i < m_pixels->numPixels(); i++)
     {
+        // Distribute the color wheel across all pixels
         uint8_t offset = (m_rainbowIndex + (i * 256 / m_pixels->numPixels())) % 256;
         setPixelColorWithBrightness(i, wheel(offset), m_brightness);
     }
 
+    // Update the display
     m_pixels->show();
+
+    // Move to the next color in the rainbow
     m_rainbowIndex = (m_rainbowIndex + 1) % 256;
-    Log.debug("[EyeAnimation] Rainbow update: index=%d", m_rainbowIndex);
 
     // Update blink animation if active
     updateBlink();
+
+    // Final update to show any blink changes
     m_pixels->show();
 }
 
+/**
+ * @brief Update the eyes with the default solid color
+ *
+ * @note This should be called regularly from the main loop
+ */
 void EyeAnimation::updateDefault()
 {
+    if (!m_pixels)
+        return;
+
+    // Set all pixels to the default color
     setAllPixelsColor(m_defaultColor);
 
     // Update blink animation if active
     updateBlink();
+
+    // Update the display
     m_pixels->show();
 }
 
+/**
+ * @brief Set all pixels to the specified color
+ *
+ * @param[in] color 32-bit color value (0x00RRGGBB)
+ */
 void EyeAnimation::setAllPixelsColor(uint32_t color)
 {
+    if (!m_pixels)
+        return;
+
     for (uint16_t i = 0; i < m_pixels->numPixels(); i++)
     {
         setPixelColorWithBrightness(i, color, m_brightness);
     }
 }
 
+/**
+ * @brief Set a single pixel's color with brightness adjustment
+ *
+ * @param[in] pixel Pixel index (0 to numPixels-1)
+ * @param[in] color 32-bit color value (0x00RRGGBB)
+ * @param[in] brightness Brightness value (0-255)
+ *
+ * @note If brightness is 255, the color is set directly for better performance
+ */
 void EyeAnimation::setPixelColorWithBrightness(uint16_t pixel, uint32_t color, uint8_t brightness)
 {
+    if (!m_pixels || pixel >= m_pixels->numPixels())
+    {
+        return;  // Safety check
+    }
+
+    // Fast path for full brightness
     if (brightness == 255)
     {
         m_pixels->setPixelColor(pixel, color);
         return;
     }
 
-    uint8_t r = (color >> 16) & 0xFF;
-    uint8_t g = (color >> 8) & 0xFF;
-    uint8_t b = color & 0xFF;
+    // Extract RGB components
+    uint8_t r = static_cast<uint8_t>((color >> 16) & 0xFF);
+    uint8_t g = static_cast<uint8_t>((color >> 8) & 0xFF);
+    uint8_t b = static_cast<uint8_t>(color & 0xFF);
 
-    // Scale colors by brightness (0-255)
-    r = (r * brightness) >> 8;
-    g = (g * brightness) >> 8;
-    b = (b * brightness) >> 8;
+    // Scale colors by brightness (using fixed-point math for efficiency)
+    r = static_cast<uint8_t>((r * brightness) >> 8);
+    g = static_cast<uint8_t>((g * brightness) >> 8);
+    b = static_cast<uint8_t>((b * brightness) >> 8);
 
-    uint32_t newColor = ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
+    // Combine back into 32-bit color
+    uint32_t newColor = (static_cast<uint32_t>(r) << 16) | (static_cast<uint32_t>(g) << 8) | b;
+
     m_pixels->setPixelColor(pixel, newColor);
 }
 
+/**
+ * @brief Generate a color from a position on the color wheel
+ *
+ * @param[in] pos Position on the color wheel (0-255)
+ * @return uint32_t Color value (0x00RRGGBB)
+ *
+ * @note This creates a smooth color transition through the rainbow
+ */
 uint32_t EyeAnimation::wheel(uint8_t pos)
 {
-    pos = 255 - pos;
+    pos = 255 - pos;  // Reverse direction for better color progression
+
+    // Calculate color based on position in the color wheel
     if (pos < 85)
     {
-        return ((uint32_t)(255 - pos * 3) << 16) | ((uint32_t)0 << 8) | (pos * 3);
+        // Red to Green transition (decreasing red, increasing green)
+        return (static_cast<uint32_t>(255 - pos * 3) << 16) | (static_cast<uint32_t>(pos * 3) << 8);
     }
-    if (pos < 170)
+    else if (pos < 170)
     {
+        // Green to Blue transition (decreasing green, increasing blue)
         pos -= 85;
-        return ((uint32_t)0 << 16) | ((uint32_t)(pos * 3) << 8) | (255 - pos * 3);
+        return (static_cast<uint32_t>(pos * 3) << 8) | (static_cast<uint32_t>(255 - pos * 3));
     }
-    pos -= 170;
-    return ((uint32_t)(pos * 3) << 16) | ((uint32_t)(255 - pos * 3) << 8) | 0;
+    else
+    {
+        // Blue to Red transition (decreasing blue, increasing red)
+        pos -= 170;
+        return (static_cast<uint32_t>(255 - pos * 3) << 16) | (static_cast<uint32_t>(pos * 3));
+    }
 }
 
+/**
+ * @brief Set the top pixels for blink animation
+ *
+ * @param[in] topPixel1 First top pixel index (0-15)
+ * @param[in] topPixel2 Second top pixel index (0-15)
+ *
+ * @note The blink animation will start from these pixels and move outward
+ */
 void EyeAnimation::setTopPixels(uint8_t topPixel1, uint8_t topPixel2)
 {
     // Ensure pixels are within valid range (0-15)
     m_topPixel1 = topPixel1 % 16;
     m_topPixel2 = topPixel2 % 16;
 
-    // Recalculate the pixel order
+    Log.debug("Set top pixels to %d and %d", m_topPixel1, m_topPixel2);
+
+    // Recalculate the animation order for the blink effect
     calculatePixelOrder();
 }
 
+/**
+ * @brief Calculate the order in which pixels should animate during a blink
+ *
+ * @note This creates a wave-like animation that spreads out from the top pixels
+ */
 void EyeAnimation::calculatePixelOrder()
 {
-    // Clear the pixel order array
-    for (int i = 0; i < 16; i++)
+    // Clear the pixel order array with invalid values
+    for (uint8_t i = 0; i < 16; i++)
     {
-        m_pixelOrder[i] = 0xFF;  // Initialize with invalid value
+        m_pixelOrder[i] = 0xFF;
     }
 
     // Start with the two top pixels
     m_pixelOrder[0] = m_topPixel1;
     m_pixelOrder[1] = m_topPixel2;
 
-    // Create a set to track used pixels
+    // Track which pixels have been assigned an order
     bool used[16] = {false};
     used[m_topPixel1] = true;
     used[m_topPixel2] = true;
 
-    // Current positions for each wave front
+    // Current positions for the animation wave front
     int16_t leftPos = m_topPixel1;
     int16_t rightPos = m_topPixel2;
 
-    // Fill in the remaining pixels in pairs, moving outward
-    for (int i = 2; i < 16;)
+    // Fill in the remaining pixels in wave order
+    for (uint8_t i = 2; i < 16;)
     {
         // Move left position counter-clockwise
         int16_t newLeftPos = (leftPos - 1 + 16) % 16;
@@ -205,110 +324,139 @@ void EyeAnimation::calculatePixelOrder()
     }
 
     // Log the pixel order for debugging
-    Log.info("[EyeAnimation] Pixel order: %d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-             m_pixelOrder[0], m_pixelOrder[1], m_pixelOrder[2], m_pixelOrder[3], m_pixelOrder[4],
-             m_pixelOrder[5], m_pixelOrder[6], m_pixelOrder[7], m_pixelOrder[8], m_pixelOrder[9],
-             m_pixelOrder[10], m_pixelOrder[11], m_pixelOrder[12], m_pixelOrder[13],
-             m_pixelOrder[14], m_pixelOrder[15]);
+    Log.debug("Pixel animation order: %d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+              m_pixelOrder[0], m_pixelOrder[1], m_pixelOrder[2], m_pixelOrder[3], m_pixelOrder[4],
+              m_pixelOrder[5], m_pixelOrder[6], m_pixelOrder[7], m_pixelOrder[8], m_pixelOrder[9],
+              m_pixelOrder[10], m_pixelOrder[11], m_pixelOrder[12], m_pixelOrder[13],
+              m_pixelOrder[14], m_pixelOrder[15]);
 }
 
+/**
+ * @brief Start a blink animation
+ *
+ * @param[in] duration Total duration of the blink in milliseconds
+ *
+ * @note If a blink is already in progress, this call will be ignored
+ */
 void EyeAnimation::blink(unsigned long duration)
 {
     if (m_isBlinking)
     {
-        return;  // Don't interrupt an ongoing blink
+        Log.debug("Blink already in progress, ignoring new blink request");
+        return;  // Don't interrupt current blink
     }
 
-    // If blink count is 0, this is a manual blink
-    if (m_blinkCount == 0)
-    {
-        m_blinkCount = 1;  // Set to 1 for a single blink
-    }
-
-    Log.debug("[EyeAnimation] Starting blink with duration %dms, m_blinkCount = %d", duration,
-              m_blinkCount);
-
-    // Initialize blink state
     m_isBlinking = true;
     m_blinkStartTime = m_currentTime;
-    m_blinkDuration = duration > 0 ? duration : 300;  // Ensure non-zero duration
-    m_blinkPhase = 1;                                 // Start with closing phase
+    m_blinkDuration = duration > 0 ? duration : DEFAULT_BLINK_DURATION;
+    m_blinkPhase = 1;  // Start closing
     m_blinkProgress = 0.0f;
     m_blinkEndTime = m_blinkStartTime + m_blinkDuration;
 
     // Initialize all pixel progress to 0 (fully on)
-    for (int i = 0; i < 16; i++)
+    for (uint8_t i = 0; i < 16; i++)
     {
         m_pixelProgress[i] = 0.0f;
     }
+
+    Log.debug("Started blink animation for %lu ms", m_blinkDuration);
 }
 
+/**
+ * @brief Start a sequence of blinks (like a double or triple blink)
+ *
+ * @note The number of blinks is randomly chosen between 2 and 4
+ */
 void EyeAnimation::sequenceBlink()
 {
     // If we're not currently blinking
-    if (!m_isBlinking)
+    if (!m_blinkCount)
     {
-        // If we have more blinks in the sequence, start the next one
-        if (m_blinkCount > 0)
+        // Start a new sequence of 2-4 blinks
+        m_blinkCount = 2 + (m_currentTime % 3);  // 2-4 blinks
+        m_nextBlinkDelay = 0;
+        m_blinkEndTime =
+            m_currentTime + (m_blinkCount * 150) + 100;  // 150ms per blink + 100ms buffer
+        Log.debug("Starting blink sequence: %d blinks", m_blinkCount);
+    }
+
+    // If we're not currently in a blink and have more to do
+    if (!m_isBlinking && m_blinkCount > 0)
+    {
+        // Small delay between blinks in a sequence (100-200ms)
+        static unsigned long lastBlinkEnd = 0;
+        if (m_currentTime - lastBlinkEnd >= 150)
         {
-            // Small delay between blinks in a sequence (100-200ms)
-            static unsigned long lastBlinkEnd = 0;
-            if (m_currentTime - lastBlinkEnd >= 150)
-            {
-                uint8_t duration = random(100, 400);
-                blink(duration);                          // 300ms per blink
-                lastBlinkEnd = m_currentTime + duration;  // Update when this blink will end
-            }
+            uint8_t duration = random(100, 400);
+            blink(duration);                          // 300ms per blink
+            lastBlinkEnd = m_currentTime + duration;  // Update when this blink will end
         }
-        // If no more blinks in sequence, schedule next sequence
-        else if (m_nextBlinkDelay == 0)
+    }
+    // If no more blinks in sequence, schedule next sequence
+    else if (m_nextBlinkDelay == 0)
+    {
+        // Set a random delay before next blink sequence (2-8 seconds)
+        m_nextBlinkDelay = m_currentTime + random(2000, 8000);
+    }
+    // If it's time for a new blink sequence
+    else if (m_currentTime >= m_nextBlinkDelay)
+    {
+        // 70% chance of single blink, 25% double blink, 5% triple blink
+        uint8_t r = random(100);
+        if (r < 70)
         {
-            // Set a random delay before next blink sequence (2-8 seconds)
-            m_nextBlinkDelay = m_currentTime + random(2000, 8000);
+            m_blinkCount = 1;
         }
-        // If it's time for a new blink sequence
-        else if (m_currentTime >= m_nextBlinkDelay)
+        else if (r < 95)
         {
-            // 70% chance of single blink, 25% double blink, 5% triple blink
-            uint8_t r = random(100);
-            if (r < 70)
-            {
-                m_blinkCount = 1;
-            }
-            else if (r < 95)
-            {
-                m_blinkCount = 2;
-            }
-            else
-            {
-                m_blinkCount = 3;
-            }
-            m_nextBlinkDelay = 0;  // Reset for next sequence
+            m_blinkCount = 2;
         }
+        else
+        {
+            m_blinkCount = 3;
+        }
+        m_nextBlinkDelay = 0;  // Reset for next sequence
     }
 }
 
+/**
+ * @brief Update the blink animation state
+ *
+ * @return true if a blink is in progress, false otherwise
+ *
+ * @note This should be called regularly from the main loop to update the animation
+ */
 bool EyeAnimation::updateBlink()
 {
+    if (!m_pixels)
+    {
+        return false;  // Safety check
+    }
+
+    // Handle blink sequence if needed
     sequenceBlink();
+
+    // If no blink is in progress, nothing to do
     if (!m_isBlinking)
     {
         return false;
     }
 
+    // Calculate progress through current blink phase (0.0 to 1.0)
     unsigned long elapsed = m_currentTime - m_blinkStartTime;
-    m_blinkProgress = (float)elapsed / (m_blinkDuration / 2.0f);  // Progress for current phase
+    m_blinkProgress = static_cast<float>(elapsed) / (m_blinkDuration / 2.0f);
 
+    // Handle phase completion
     if (m_blinkProgress >= 1.0f)
     {
-        // Phase complete
         if (m_blinkPhase == 1)
         {
-            // Switch to opening phase
+            // Switch from closing to opening phase
             m_blinkPhase = 2;
             m_blinkStartTime = m_currentTime;
             m_blinkProgress = 0.0f;
             m_blinkEndTime = m_blinkStartTime + m_blinkDuration;
+            Log.debug("Blink: Starting opening phase");
         }
         else
         {
@@ -317,32 +465,38 @@ bool EyeAnimation::updateBlink()
             if (m_blinkCount > 0)
             {
                 m_blinkCount--;
+                Log.debug("Blink: Complete, %d blinks remaining", m_blinkCount);
+            }
+            else
+            {
+                Log.debug("Blink: Sequence complete");
             }
             return false;
         }
     }
 
-    // Total number of pixel pairs (center pair + 7 outer pairs)
-    const int numPairs = 4;
-    float pairProgress;
-    // Update each pixel pair
+    // Calculate animation progress for each ring of pixels
+    const uint8_t numPairs = 4;  // Number of concentric rings of pixels
+    float ringProgress;
+
+    // Calculate progress for current phase
     if (m_blinkPhase == 1)
     {                                               // Closing phase
-        pairProgress = m_blinkProgress * numPairs;  // Scales 0.0 to numPairs
+        ringProgress = m_blinkProgress * numPairs;  // Scales 0.0 to numPairs
     }
     else
     {                                                        // Opening phase
-        pairProgress = (1.0f - m_blinkProgress) * numPairs;  // Scales 0.0 to numPairs
+        ringProgress = (1.0f - m_blinkProgress) * numPairs;  // Scales 0.0 to numPairs
     }
-    // Update each pair
-    for (int pair = 0; pair < numPairs; pair++)
+
+    // Update progress for each ring of pixels
+    for (uint8_t ring = 0; ring < numPairs; ring++)
     {
-        // Get the two pixels in this pair
-        int idx1 = pair * 2;
-        int idx2 = pair * 2 + 1;
-        // mirror the pixels to the other side of the eye
-        int idx3 = 15 - idx1;  // numPixels - 1
-        int idx4 = 15 - idx2;  // numPixels - 1
+        // Get the pixels in this ring (4 pixels per ring: top1, top2, bottom1, bottom2)
+        uint8_t idx1 = ring * 2;
+        uint8_t idx2 = idx1 + 1;
+        uint8_t idx3 = 15 - idx1;  // Mirror on the other side
+        uint8_t idx4 = 15 - idx2;  // Mirror on the other side
         // 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
         // 0,1 + 15,14
         // 2,3 + 13,12
@@ -354,20 +508,21 @@ bool EyeAnimation::updateBlink()
         // 7,2 + 15,10
         // 8,1 + 16,9
 
+        // Get the actual pixel indices from our animation order
         uint8_t pixel1 = m_pixelOrder[idx1];
         uint8_t pixel2 = m_pixelOrder[idx2];
         uint8_t pixel3 = m_pixelOrder[idx3];
         uint8_t pixel4 = m_pixelOrder[idx4];
 
-        // Calculate progress for this pair (0.0 to 1.0)
-        float localProgress = (pairProgress - pair) / 1.0f;
-        localProgress = constrain(localProgress, 0.0f, 1.0f);
+        // Calculate progress for this ring (0.0 to 1.0)
+        float ringLocalProgress = (ringProgress - ring) / 1.0f;
+        ringLocalProgress = constrain(ringLocalProgress, 0.0f, 1.0f);
 
-        // Update both pixels in the pair
-        m_pixelProgress[pixel1] = localProgress;
-        m_pixelProgress[pixel2] = localProgress;
-        m_pixelProgress[pixel3] = localProgress;
-        m_pixelProgress[pixel4] = localProgress;
+        // Update progress for all pixels in this ring
+        m_pixelProgress[pixel1] = ringLocalProgress;
+        m_pixelProgress[pixel2] = ringLocalProgress;
+        m_pixelProgress[pixel3] = ringLocalProgress;
+        m_pixelProgress[pixel4] = ringLocalProgress;
     }
 
     // Update all pixels based on their current progress
@@ -375,7 +530,7 @@ bool EyeAnimation::updateBlink()
     {
         uint8_t pixelIndex = m_pixelOrder[i];
 
-        // Calculate brightness based on phase and progress
+        // Calculate brightness (invert progress for closing phase)
         float brightness = 1.0f - m_pixelProgress[pixelIndex];
 
         // Get the pixel's current color and apply brightness

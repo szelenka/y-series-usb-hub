@@ -1,108 +1,209 @@
 /**
  * @file EyeAnimation.h
- * @brief Handles all eye-related animations for the Y-Series USB Hub
+ * @brief Eye animation controller for the Y-Series USB Hub
+ * @author Scott Zelenka
+ * @date 2024-06-14
+ *
+ * @details
+ * This file defines the EyeAnimation class which manages LED animations for the
+ * Y-Series USB Hub's eye display. It supports various eye effects including
+ * blinking, color changes, and rainbow animations using NeoPixel LEDs.
+ *
+ * The EyeAnimation is responsible for:
+ * - Managing NeoPixel LED states and colors
+ * - Handling smooth eye blinking animations
+ * - Supporting different eye display modes (solid color, rainbow, etc.)
+ * - Providing a clean interface for eye animation control
  */
 
-#pragma once
+#ifndef Y_SERIES_USB_HUB_EYE_ANIMATION_H
+#define Y_SERIES_USB_HUB_EYE_ANIMATION_H
 
+// System includes
+#include <Arduino.h>
+
+// Third-party includes
 #include <Adafruit_NeoPixel.h>
+
+// Project-local includes
 #include <Logger.h>
 
+/**
+ * @brief Controls eye animations using NeoPixel LEDs
+ *
+ * @details
+ * The EyeAnimation class provides a high-level interface for creating smooth,
+ * visually appealing eye animations. It handles all the low-level details of
+ * NeoPixel control while providing simple methods for common eye animations.
+ */
 class EyeAnimation
 {
 public:
-    /**
-     * @brief Construct a new Eye Animation controller
-     * @param pixels Pointer to the NeoPixel controller
-     * @param numPixels Number of pixels in the eye ring
-     */
-    EyeAnimation(Adafruit_NeoPixel* pixels);
+    /// @name Construction and Initialization
+    /// @{
 
     /**
-     * @brief Set the top pixels for the blink animation
-     * @param topPixel1 First top pixel (0-15)
-     * @param topPixel2 Second top pixel (0-15)
+     * @brief Construct a new Eye Animation controller
+     *
+     * @param[in] pixels Pointer to the Adafruit_NeoPixel instance
+     *
+     * @note The NeoPixel instance must be initialized before use
+     * @warning The NeoPixel pointer must remain valid for the lifetime of this object
+     */
+    explicit EyeAnimation(Adafruit_NeoPixel* pixels);
+
+    // Prevent copying and assignment
+    EyeAnimation(const EyeAnimation&) = delete;
+    EyeAnimation& operator=(const EyeAnimation&) = delete;
+
+    /// @}
+
+    /// @name Configuration
+    /// @{
+
+    /**
+     * @brief Set the top pixels for blink animation
+     *
+     * @param[in] topPixel1 First top pixel index (0-15)
+     * @param[in] topPixel2 Second top pixel index (0-15)
+     *
+     * @note This affects the direction of the blink animation
      */
     virtual void setTopPixels(uint8_t topPixel1, uint8_t topPixel2);
 
     /**
-     * @brief Set the default color for the eyes
-     * @param r Red component (0-255)
-     * @param g Green component (0-255)
-     * @param b Blue component (0-255)
+     * @brief Set the default eye color
+     *
+     * @param[in] r Red component (0-255)
+     * @param[in] g Green component (0-255)
+     * @param[in] b Blue component (0-255)
      */
     virtual void setDefaultColor(uint8_t r, uint8_t g, uint8_t b);
 
     /**
      * @brief Set the global brightness
-     * @param brightness Brightness value (0-255)
+     *
+     * @param[in] brightness Brightness value (0-255)
      */
     virtual void setBrightness(uint8_t brightness);
 
     /**
-     * @brief Set the current time
-     * @param currentTime Current time in milliseconds
+     * @brief Set the current time for animation timing
+     *
+     * @param[in] currentTime Current time in milliseconds
      */
     virtual void setCurrentTime(unsigned long currentTime) { m_currentTime = currentTime; }
 
+    /// @}
+
+    /// @name Animation Control
+    /// @{
+
     /**
-     * @brief Update the eye animation
+     * @brief Update the eyes with a rainbow animation effect
+     *
+     * @note This should be called regularly from the main loop
      */
     virtual void updateRainbow();
+
     /**
-     * @brief Update the eye animation
+     * @brief Update the eyes with the default solid color
+     *
+     * @note This should be called regularly from the main loop
      */
     virtual void updateDefault();
 
     /**
      * @brief Start a blink animation
-     * @param duration Total duration of the blink in milliseconds
+     *
+     * @param[in] duration Total duration of the blink in milliseconds
      */
     virtual void blink(unsigned long duration = 200);
 
     /**
      * @brief Update the blink animation state
-     * @return true if blink is in progress, false otherwise
+     *
+     * @return true if a blink is in progress, false otherwise
+     *
+     * @note This should be called regularly from the main loop
      */
     virtual bool updateBlink();
 
     /**
-     * @brief Start a sequence of blinks
+     * @brief Start a sequence of blinks (blink multiple times)
+     *
+     * @note The number and timing of blinks is controlled by internal constants
      */
     virtual void sequenceBlink();
 
-private:
+    /// @}
+
+protected:
+    /// @name Internal Methods
+    /// @{
+
+    /**
+     * @brief Set all pixels to the specified color
+     *
+     * @param[in] color 32-bit color value (0x00RRGGBB)
+     */
     virtual void setAllPixelsColor(uint32_t color);
+
+    /**
+     * @brief Set a single pixel's color with brightness adjustment
+     *
+     * @param[in] pixel Pixel index
+     * @param[in] color 32-bit color value (0x00RRGGBB)
+     * @param[in] brightness Brightness value (0-255)
+     */
     virtual void setPixelColorWithBrightness(uint16_t pixel, uint32_t color,
                                              uint8_t brightness = 255);
+
+    /**
+     * @brief Generate a color from a position on the color wheel
+     *
+     * @param[in] pos Position on the color wheel (0-255)
+     * @return uint32_t Color value (0x00RRGGBB)
+     */
     virtual uint32_t wheel(uint8_t pos);
-
-    Adafruit_NeoPixel* m_pixels = nullptr;
-
-    // Animation state
-    uint16_t m_rainbowIndex;
-    unsigned long m_rainbowTimer;
-    uint32_t m_defaultColor;
-    uint8_t m_brightness;
-    unsigned long m_currentTime;
 
     /**
      * @brief Calculate the order in which pixels should animate during a blink
-     * This is called automatically when top pixels are set
+     *
+     * @note This is called automatically when top pixels are set
      */
     virtual void calculatePixelOrder();
 
+    /// @}
+
+private:
+    /// @name Member Variables
+    /// @{
+
+    Adafruit_NeoPixel* m_pixels;  ///< Pointer to NeoPixel controller
+
+    // Animation state
+    uint16_t m_rainbowIndex;       ///< Current position in rainbow animation
+    unsigned long m_rainbowTimer;  ///< Timer for rainbow animation updates
+    uint32_t m_defaultColor;       ///< Default eye color (0x00RRGGBB)
+    uint8_t m_brightness;          ///< Global brightness (0-255)
+    unsigned long m_currentTime;   ///< Current time in milliseconds
+
     // Blink state
-    bool m_isBlinking;
-    unsigned long m_blinkStartTime;
-    unsigned long m_blinkDuration;
-    unsigned long m_blinkEndTime;
-    uint8_t m_blinkPhase;                // 0=not blinking, 1=closing, 2=opening
-    float m_blinkProgress;               // 0.0 to 1.0 for current phase
-    float m_pixelProgress[16];           // Progress for each pixel (0.0 to 1.0)
-    uint8_t m_topPixel1;                 // First top pixel
-    uint8_t m_topPixel2;                 // Second top pixel
-    uint8_t m_pixelOrder[16];            // Calculated pixel order for animation
-    unsigned long m_nextBlinkDelay = 0;  ///< Delay until next blink
-    uint8_t m_blinkCount = 0;            ///< Number of blinks
+    bool m_isBlinking;               ///< True if a blink is in progress
+    unsigned long m_blinkStartTime;  ///< When the current blink started
+    unsigned long m_blinkDuration;   ///< Duration of the current blink
+    unsigned long m_blinkEndTime;    ///< When the current blink sequence ends
+    uint8_t m_blinkPhase;            ///< 0=not blinking, 1=closing, 2=opening
+    float m_blinkProgress;           ///< 0.0 to 1.0 for current blink phase
+    float m_pixelProgress[16];       ///< Progress for each pixel (0.0 to 1.0)
+    uint8_t m_topPixel1;             ///< First top pixel index
+    uint8_t m_topPixel2;             ///< Second top pixel index
+    uint8_t m_pixelOrder[16];        ///< Animation order for pixels during blink
+    unsigned long m_nextBlinkDelay;  ///< Delay until next blink in sequence
+    uint8_t m_blinkCount;            ///< Number of blinks in current sequence
+
+    /// @}
 };
+
+#endif  // Y_SERIES_USB_HUB_EYE_ANIMATION_H

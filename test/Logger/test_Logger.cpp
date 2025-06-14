@@ -27,6 +27,13 @@ void test_logger_levels()
                 strcat(buffer, "\n");
                 return strlen(str) + 1;
             });
+    When(OverloadedMethod(ArduinoFake(Stream), println, size_t()))
+        .AlwaysDo(
+            [&buffer]()
+            {
+                strcat(buffer, "\n");
+                return 1;
+            });
     When(Method(ArduinoFake(), millis)).AlwaysReturn(0);
 
     Logger logger(streamPtr, "[Test]");

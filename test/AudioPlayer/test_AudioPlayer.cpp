@@ -113,11 +113,11 @@ void test_audio_player_update()
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t)))
         .Do([](const uint8_t* data, size_t size) { return 1; });
     When(OverloadedMethod(playerMock, write, size_t(uint8_t))).Do([](uint8_t c) { return 1; });
-    When(Method(playerMock, playing))
+    When(Method(playerMock, done))
         .Do(
             []()
             {
-                return false;  // Mock as not playing
+                return true;  // Mock as not playing
             });
     When(Method(playerMock, flush))
         .Do(
@@ -137,6 +137,9 @@ void test_audio_player_update()
     // Create audio player
     AudioPlayer* player = new AudioPlayer(&playerMock.get());
 
+    // not null
+    TEST_ASSERT_NOT_NULL(player);
+
     // Start playing
     player->play(0);
     TEST_ASSERT_EQUAL(WAVState::Playing, player->getState());
@@ -146,6 +149,9 @@ void test_audio_player_update()
     TEST_ASSERT_EQUAL(WAVState::Stopped, player->getState());
     TEST_ASSERT_EQUAL(-1, player->getCurrentSoundIndex());
     TEST_ASSERT_FALSE(player->isPlaying());
+
+    // Clean up
+    delete player;
 }
 
 void test_audio_player_random_sound()
@@ -157,40 +163,44 @@ void test_audio_player_random_sound()
     Log.setLogLevel(LogLevel::NONE);
     // Mock player methods
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t)))
-        .Do([](const uint8_t* data, size_t size) { return 1; });
-    When(OverloadedMethod(playerMock, write, size_t(uint8_t))).Do([](uint8_t c) { return 1; });
-    When(Method(playerMock, playing))
-        .Do(
+        .AlwaysDo([](const uint8_t* data, size_t size) { return 1; });
+    When(OverloadedMethod(playerMock, write, size_t(uint8_t)))
+        .AlwaysDo([](uint8_t c) { return 1; });
+    When(Method(playerMock, done))
+        .AlwaysDo(
             []()
             {
-                return true;  // Mock as playing
+                return false;  // Mock as playing
             });
     When(Method(playerMock, flush))
-        .Do(
+        .AlwaysDo(
             []()
             {
                 return;  // Mock flush
             });
     When(Method(playerMock, begin))
-        .Do(
+        .AlwaysDo(
             []()
             {
                 return true;  // Mock begin
             });
-    When(OverloadedMethod(ArduinoFake(), random, long(long, long)))
-        .AlwaysDo([](long min, long max) { return 1; });
+    When(OverloadedMethod(ArduinoFake(), random, long(long))).AlwaysDo([](long max) { return 2; });
 
     // Create audio player
     AudioPlayer* player = new AudioPlayer(&playerMock.get());
 
     // Play random sound
     std::cout << "  Playing random sound" << std::endl;
-    player->playRandomSound();
+    bool result = player->playRandomSound();
+    TEST_ASSERT_TRUE(result);
     std::cout << "  Random sound index: " << player->getCurrentSoundIndex() << std::endl;
     TEST_ASSERT_EQUAL(WAVState::Playing, player->getState());
     TEST_ASSERT_TRUE(player->getCurrentSoundIndex() >= 0);
     TEST_ASSERT_TRUE(player->getCurrentSoundIndex() < NUM_SOUND_FILES);
     TEST_ASSERT_TRUE(player->isPlaying());
+
+    // Clean up
+    delete player;
 }
 
 void test_constructor_initialization()
@@ -290,7 +300,7 @@ void test_update_transitions_to_stopped_when_playback_finishes()
     Log.setLogLevel(LogLevel::NONE);
     // Set up mock behavior
     When(OverloadedMethod(playerMock, write, size_t(const uint8_t*, size_t))).Return(1);
-    When(Method(playerMock, playing)).Return(false);  // Simulate playback finished
+    When(Method(playerMock, done)).Return(true);  // Simulate playback finished
     When(Method(playerMock, flush)).Do([]() {});
     When(Method(playerMock, begin)).Return(true);
 
