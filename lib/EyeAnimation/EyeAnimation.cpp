@@ -130,63 +130,75 @@ void EyeAnimation::setTopPixels(uint8_t topPixel1, uint8_t topPixel2)
 void EyeAnimation::calculatePixelOrder()
 {
     // Clear the pixel order array
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 16; i++)
+    {
         m_pixelOrder[i] = 0xFF;  // Initialize with invalid value
     }
-    
+
     // Start with the two top pixels
     m_pixelOrder[0] = m_topPixel1;
     m_pixelOrder[1] = m_topPixel2;
-    
+
     // Create a set to track used pixels
     bool used[16] = {false};
     used[m_topPixel1] = true;
     used[m_topPixel2] = true;
-    
+
     // Current positions for each wave front
     int16_t leftPos = m_topPixel1;
     int16_t rightPos = m_topPixel2;
-    
+
     // Fill in the remaining pixels in pairs, moving outward
-    for (int i = 2; i < 16; ) {
+    for (int i = 2; i < 16;)
+    {
         // Move left position counter-clockwise
         int16_t newLeftPos = (leftPos - 1 + 16) % 16;
-        while (used[newLeftPos] && newLeftPos != rightPos) {
+        while (used[newLeftPos] && newLeftPos != rightPos)
+        {
             newLeftPos = (newLeftPos - 1 + 16) % 16;
         }
-        
+
         // Move right position clockwise
         int16_t newRightPos = (rightPos + 1) % 16;
-        while (used[newRightPos] && newRightPos != newLeftPos) {
+        while (used[newRightPos] && newRightPos != newLeftPos)
+        {
             newRightPos = (newRightPos + 1) % 16;
         }
-        
+
         // If we've met in the middle, we're done
-        if (newLeftPos == newRightPos) {
-            if (!used[newLeftPos]) {
+        if (newLeftPos == newRightPos)
+        {
+            if (!used[newLeftPos])
+            {
                 m_pixelOrder[i++] = newLeftPos;
                 used[newLeftPos] = true;
             }
             break;
         }
-        
+
         // Add the new positions if they're not used
-        if (!used[newLeftPos] && !used[newRightPos]) {
+        if (!used[newLeftPos] && !used[newRightPos])
+        {
             m_pixelOrder[i++] = newLeftPos;
             used[newLeftPos] = true;
-            
-            if (i < 16) {
+
+            if (i < 16)
+            {
                 m_pixelOrder[i++] = newRightPos;
                 used[newRightPos] = true;
             }
-        } else if (!used[newLeftPos]) {
+        }
+        else if (!used[newLeftPos])
+        {
             m_pixelOrder[i++] = newLeftPos;
             used[newLeftPos] = true;
-        } else if (!used[newRightPos]) {
+        }
+        else if (!used[newRightPos])
+        {
             m_pixelOrder[i++] = newRightPos;
             used[newRightPos] = true;
         }
-        
+
         // Update positions for next iteration
         leftPos = newLeftPos;
         rightPos = newRightPos;
@@ -194,24 +206,27 @@ void EyeAnimation::calculatePixelOrder()
 
     // Log the pixel order for debugging
     Log.info("[EyeAnimation] Pixel order: %d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-              m_pixelOrder[0], m_pixelOrder[1], m_pixelOrder[2], m_pixelOrder[3], m_pixelOrder[4],
-              m_pixelOrder[5], m_pixelOrder[6], m_pixelOrder[7], m_pixelOrder[8], m_pixelOrder[9],
-              m_pixelOrder[10], m_pixelOrder[11], m_pixelOrder[12], m_pixelOrder[13],
-              m_pixelOrder[14], m_pixelOrder[15]);
+             m_pixelOrder[0], m_pixelOrder[1], m_pixelOrder[2], m_pixelOrder[3], m_pixelOrder[4],
+             m_pixelOrder[5], m_pixelOrder[6], m_pixelOrder[7], m_pixelOrder[8], m_pixelOrder[9],
+             m_pixelOrder[10], m_pixelOrder[11], m_pixelOrder[12], m_pixelOrder[13],
+             m_pixelOrder[14], m_pixelOrder[15]);
 }
 
 void EyeAnimation::blink(unsigned long duration)
 {
-    if (m_isBlinking) {
+    if (m_isBlinking)
+    {
         return;  // Don't interrupt an ongoing blink
     }
 
     // If blink count is 0, this is a manual blink
-    if (m_blinkCount == 0) {
+    if (m_blinkCount == 0)
+    {
         m_blinkCount = 1;  // Set to 1 for a single blink
     }
 
-    Log.debug("[EyeAnimation] Starting blink with duration %dms, m_blinkCount = %d", duration, m_blinkCount);
+    Log.debug("[EyeAnimation] Starting blink with duration %dms, m_blinkCount = %d", duration,
+              m_blinkCount);
 
     // Initialize blink state
     m_isBlinking = true;
@@ -222,7 +237,8 @@ void EyeAnimation::blink(unsigned long duration)
     m_blinkEndTime = m_blinkStartTime + m_blinkDuration;
 
     // Initialize all pixel progress to 0 (fully on)
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 16; i++)
+    {
         m_pixelProgress[i] = 0.0f;
     }
 }
@@ -230,31 +246,41 @@ void EyeAnimation::blink(unsigned long duration)
 void EyeAnimation::sequenceBlink()
 {
     // If we're not currently blinking
-    if (!m_isBlinking) {
+    if (!m_isBlinking)
+    {
         // If we have more blinks in the sequence, start the next one
-        if (m_blinkCount > 0) {
+        if (m_blinkCount > 0)
+        {
             // Small delay between blinks in a sequence (100-200ms)
             static unsigned long lastBlinkEnd = 0;
-            if (m_currentTime - lastBlinkEnd >= 150) {
+            if (m_currentTime - lastBlinkEnd >= 150)
+            {
                 uint8_t duration = random(100, 400);
-                blink(duration);  // 300ms per blink
+                blink(duration);                          // 300ms per blink
                 lastBlinkEnd = m_currentTime + duration;  // Update when this blink will end
             }
-        } 
+        }
         // If no more blinks in sequence, schedule next sequence
-        else if (m_nextBlinkDelay == 0) {
+        else if (m_nextBlinkDelay == 0)
+        {
             // Set a random delay before next blink sequence (2-8 seconds)
             m_nextBlinkDelay = m_currentTime + random(2000, 8000);
         }
         // If it's time for a new blink sequence
-        else if (m_currentTime >= m_nextBlinkDelay) {
+        else if (m_currentTime >= m_nextBlinkDelay)
+        {
             // 70% chance of single blink, 25% double blink, 5% triple blink
             uint8_t r = random(100);
-            if (r < 70) {
+            if (r < 70)
+            {
                 m_blinkCount = 1;
-            } else if (r < 95) {
+            }
+            else if (r < 95)
+            {
                 m_blinkCount = 2;
-            } else {
+            }
+            else
+            {
                 m_blinkCount = 3;
             }
             m_nextBlinkDelay = 0;  // Reset for next sequence
@@ -265,25 +291,31 @@ void EyeAnimation::sequenceBlink()
 bool EyeAnimation::updateBlink()
 {
     sequenceBlink();
-    if (!m_isBlinking) {
+    if (!m_isBlinking)
+    {
         return false;
     }
 
     unsigned long elapsed = m_currentTime - m_blinkStartTime;
     m_blinkProgress = (float)elapsed / (m_blinkDuration / 2.0f);  // Progress for current phase
 
-    if (m_blinkProgress >= 1.0f) {
+    if (m_blinkProgress >= 1.0f)
+    {
         // Phase complete
-        if (m_blinkPhase == 1) {
+        if (m_blinkPhase == 1)
+        {
             // Switch to opening phase
             m_blinkPhase = 2;
             m_blinkStartTime = m_currentTime;
             m_blinkProgress = 0.0f;
             m_blinkEndTime = m_blinkStartTime + m_blinkDuration;
-        } else {
+        }
+        else
+        {
             // Blink complete
             m_isBlinking = false;
-            if (m_blinkCount > 0) {
+            if (m_blinkCount > 0)
+            {
                 m_blinkCount--;
             }
             return false;
@@ -294,19 +326,23 @@ bool EyeAnimation::updateBlink()
     const int numPairs = 4;
     float pairProgress;
     // Update each pixel pair
-    if (m_blinkPhase == 1) { // Closing phase
+    if (m_blinkPhase == 1)
+    {                                               // Closing phase
         pairProgress = m_blinkProgress * numPairs;  // Scales 0.0 to numPairs
-    } else {  // Opening phase
+    }
+    else
+    {                                                        // Opening phase
         pairProgress = (1.0f - m_blinkProgress) * numPairs;  // Scales 0.0 to numPairs
     }
     // Update each pair
-    for (int pair = 0; pair < numPairs; pair++) {
+    for (int pair = 0; pair < numPairs; pair++)
+    {
         // Get the two pixels in this pair
         int idx1 = pair * 2;
         int idx2 = pair * 2 + 1;
         // mirror the pixels to the other side of the eye
-        int idx3 = 15 - idx1; // numPixels - 1
-        int idx4 = 15 - idx2; // numPixels - 1
+        int idx3 = 15 - idx1;  // numPixels - 1
+        int idx4 = 15 - idx2;  // numPixels - 1
         // 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
         // 0,1 + 15,14
         // 2,3 + 13,12
@@ -317,16 +353,16 @@ bool EyeAnimation::updateBlink()
         // 6,3 + 14,11
         // 7,2 + 15,10
         // 8,1 + 16,9
-        
+
         uint8_t pixel1 = m_pixelOrder[idx1];
         uint8_t pixel2 = m_pixelOrder[idx2];
         uint8_t pixel3 = m_pixelOrder[idx3];
         uint8_t pixel4 = m_pixelOrder[idx4];
-    
+
         // Calculate progress for this pair (0.0 to 1.0)
         float localProgress = (pairProgress - pair) / 1.0f;
         localProgress = constrain(localProgress, 0.0f, 1.0f);
-        
+
         // Update both pixels in the pair
         m_pixelProgress[pixel1] = localProgress;
         m_pixelProgress[pixel2] = localProgress;
@@ -335,19 +371,21 @@ bool EyeAnimation::updateBlink()
     }
 
     // Update all pixels based on their current progress
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 16; i++)
+    {
         uint8_t pixelIndex = m_pixelOrder[i];
-        
+
         // Calculate brightness based on phase and progress
         float brightness = 1.0f - m_pixelProgress[pixelIndex];
-        
+
         // Get the pixel's current color and apply brightness
         uint32_t color = m_pixels->getPixelColor(pixelIndex);
         setPixelColorWithBrightness(pixelIndex, color, brightness * 255);
     }
     // set the center pixel to off when all others are off
     int centerPixelRef = (m_topPixel1 + numPairs) % 16;
-    setPixelColorWithBrightness(16, m_pixels->getPixelColor(16), 1.0f - m_pixelProgress[centerPixelRef] * 255);
+    setPixelColorWithBrightness(16, m_pixels->getPixelColor(16),
+                                1.0f - m_pixelProgress[centerPixelRef] * 255);
 
     return true;
 }

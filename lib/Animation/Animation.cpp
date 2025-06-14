@@ -25,7 +25,6 @@ void Animation::rotate(uint8_t speed, MotorDirection direction)
 {
     // Constrain speed to valid range
     const uint8_t safe_speed = std::min(speed, AnimationConstants::kMaxMotorSpeed);
-
     switch (direction)
     {
         case MotorDirection::Forward:
@@ -66,15 +65,18 @@ void Animation::stop()
 void Animation::setRotationDirection()
 {
     // Check if either limit sensor is triggered
-    if (m_inputSensorLeft == HIGH || m_inputSensorRight == HIGH)
+    if (m_inputSensorLeft == LOW)
     {
         // Reverse direction when hitting a limit
-        m_motorDirection *= -1;
-        m_randomRotateTimer = 0;  // Reset the rotation timer
-
-        Log.debug("[Animation] Hall effect sensor triggered, direction: %s",
-                  m_motorDirection == MotorDirection::Forward ? "Forward" : "Backward");
+        m_motorDirection = MotorDirection::Forward;
+        m_randomRotateTimer = 750;
         return;
+    }
+    else if (m_inputSensorRight == LOW)
+    {
+        // Reverse direction when hitting a limit
+        m_motorDirection = MotorDirection::Backward;
+        m_randomRotateTimer = 750;
     }
 
     // If no sensor is triggered, handle random direction changes
@@ -154,10 +156,13 @@ void Animation::performRotate()
     // Handle PIR sensor state
     if (m_inputPIRSensor == HIGH)
     {
+        digitalWrite(m_pins.domeLedGreen, HIGH);
+        setRotationDirection();
         handlePirTriggered();
     }
     else
     {
+        digitalWrite(m_pins.domeLedGreen, LOW);
         handlePirInactive();
     }
 }
@@ -168,7 +173,7 @@ void Animation::performRotate()
 void Animation::handlePirTriggered()
 {
     // Play sound effect when motion is first detected
-    if (m_lastPIRState != HIGH)
+    if (m_lastPIRState == LOW)
     {
         m_audioPlayer->play(4);
         Log.info("[Animation] Motion detected, starting rotation");

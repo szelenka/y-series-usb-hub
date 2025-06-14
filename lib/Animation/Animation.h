@@ -43,8 +43,8 @@ constexpr uint32_t kMaxDirectionTime =
     2000;  ///< Time (ms) after which direction is strongly preferred
 
 // PIR sensor timing
-constexpr uint32_t kPirTimeout = 30000;         ///< Time (ms) after PIR trigger before stopping
-constexpr uint32_t kInactivityTimeout = 30000;  ///< Time (ms) of inactivity before stopping
+constexpr uint32_t kPirTimeout = 5000;         ///< Time (ms) after PIR trigger before stopping
+constexpr uint32_t kInactivityTimeout = 5000;  ///< Time (ms) of inactivity before stopping
 
 // Direction bias
 constexpr float kNormalBias = 1.0f;    ///< Base direction bias
