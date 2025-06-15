@@ -109,12 +109,14 @@ make docker-coverage
 
 ### Adding Sound Effects
 
-1. Place WAV files in the `sounds` directory
-2. Run the WAV to C++ converter:
+1. Place your WAV files in any directory
+2. Convert the WAV file to a C++ header:
    ```bash
-   make wav-to-cpp WAV_FILE=path/to/your/sound.wav
+   make wav-to-header WAV_FILE=path/to/your/sound.wav
    ```
-3. The sound will be automatically included in the build
+3. The sound header will be generated in `lib/WavData/`
+4. Include the header in `WavData.cpp` and add the sound to the appropriate arrays
+5. Rebuild the project to include the new sound
 
 ### Modifying Animations
 
