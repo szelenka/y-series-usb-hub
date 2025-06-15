@@ -20,17 +20,17 @@
 
 // Include the generated WAV data files
 // These are generated from actual WAV files using a conversion tool
-#include "wav_chat_01.cpp"
-#include "wav_chat_02.cpp"
-#include "wav_excited_03.cpp"
-#include "wav_excited_04.cpp"
-#include "wav_sad_01.cpp"
-#include "wav_sad_02.cpp"
-#include "wav_sad_03.cpp"
-#include "wav_powerup.cpp"
-#include "wav_question_02.cpp"
-#include "wav_question_03.cpp"
-#include "wav_question_04.cpp"
+#include "wav_chat_01.h"
+#include "wav_chat_02.h"
+#include "wav_excited_03.h"
+#include "wav_excited_04.h"
+#include "wav_sad_01.h"
+#include "wav_sad_02.h"
+#include "wav_sad_03.h"
+#include "wav_powerup.h"
+#include "wav_question_02.h"
+#include "wav_question_03.h"
+#include "wav_question_04.h"
 
 // Array of pointers to all WAV data files in PROGMEM
 // The order of files in this array must match the order in sound_data_sizes

@@ -11,7 +11,7 @@ if [ ! -f "$COVERAGE_HTML" ]; then
 fi
 
 # Extract the coverage percentage from the HTML
-COVERAGE_PERCENT=$(grep -A 5 "Lines:" "$COVERAGE_HTML" | grep -E 'headerCovTableEntryHi' | head -1 | sed -E 's/.*>([0-9.]+) %<.*/\1/')
+COVERAGE_PERCENT=$(grep -A 5 "Lines:" "$COVERAGE_HTML" | grep -E 'headerCovTableEntry(Hi|Lo|Med)' | head -1 | sed -E 's/.*>([0-9.]+) %<.*/\1/')
 
 # If first method fails, try alternative approach
 if [ -z "$COVERAGE_PERCENT" ] || ! echo "$COVERAGE_PERCENT" | grep -q '^[0-9.]*$'; then
@@ -31,9 +31,9 @@ fi
 ROUNDED_PERCENT=$(printf "%.0f" "$COVERAGE_PERCENT")
 
 # Determine badge color based on coverage percentage
-if (( $(echo "$COVERAGE_PERCENT < 50" | bc -l) )); then
+if (( ${COVERAGE_PERCENT%.*} < 50 )); then
     COLOR="e05d44"  # red
-elif (( $(echo "$COVERAGE_PERCENT < 80" | bc -l) )); then
+elif (( ${COVERAGE_PERCENT%.*} < 80 )); then
     COLOR="dfb317"  # yellow
 else
     COLOR="4c1"     # brightgreen
