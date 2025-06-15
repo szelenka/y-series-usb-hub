@@ -12,18 +12,19 @@
 #include <WavData.h>
 
 // https://github.com/adafruit/Adafruit-KB2040-PCB/blob/main/Adafruit%20KB2040%20Pinout.pdf
+#define PIN_PIR_SENSOR 3        // 3
+#define PIN_DOME_LED_GREEN 4    // 4
+#define PIN_DOME_LED_BLUE 4     // 4
+#define PIN_EYE_NEOPIXEL 5      // 5
+#define PIN_BUTTON_RECTANGLE 6  // 6
+#define PIN_BUTTON_CIRCLE 7     // 7
+#define PIN_SENSOR_LEFT 8       // 8
+#define PIN_SENSOR_RIGHT 9      // 9
+#define PIN_AMP_SD 10           // 10
 #define PIN_NECK_MOTOR_IN1 26   // A0
 #define PIN_NECK_MOTOR_IN2 27   // A1
-#define PIN_AMP_SD 28           // A2
-#define PIN_AUDIO_OUT 29        // A3
-#define PIN_DOME_LED_GREEN 2    // 2
-#define PIN_DOME_LED_BLUE 2     // 2
-#define PIN_SENSOR_LEFT 3       // 3
-#define PIN_SENSOR_RIGHT 4      // 4
-#define PIN_EYE_NEOPIXEL 5      // 5
-#define PIN_PIR_SENSOR 6        // 6
-#define PIN_BUTTON_RECTANGLE 7  // 7
-#define PIN_BUTTON_CIRCLE 8     // 8
+#define PIN_AUDIO_OUT_NEG 28    // A2
+#define PIN_AUDIO_OUT_POS 29    // A3
 
 #define NUMPIXELS 17
 #define NEOPIXEL_BRIGHTNESS 50
@@ -34,11 +35,11 @@
 // Create AnimationPins with custom pin values
 AnimationPins customPins(PIN_EYE_NEOPIXEL, PIN_NECK_MOTOR_IN1, PIN_NECK_MOTOR_IN2, PIN_SENSOR_LEFT,
                          PIN_SENSOR_RIGHT, PIN_PIR_SENSOR, PIN_BUTTON_RECTANGLE, PIN_BUTTON_CIRCLE,
-                         PIN_AUDIO_OUT, PIN_DOME_LED_GREEN, PIN_DOME_LED_BLUE);
+                         PIN_AUDIO_OUT_POS, PIN_AUDIO_OUT_NEG, PIN_DOME_LED_GREEN, PIN_DOME_LED_BLUE);
 
 Adafruit_NeoPixel neoPixel(NUMPIXELS, customPins.eyeNeck, NEO_GRB + NEO_KHZ800);
 EyeAnimation eyeAnimation(&neoPixel);
-PWMAudio pwmAudio(customPins.audioOut);
+PWMAudio pwmAudio(customPins.audioOutPos, customPins.audioOutNeg);
 ROMBackgroundAudioWAV bga(pwmAudio);
 AudioPlayer audioPlayer(&bga);
 
@@ -88,7 +89,8 @@ void setup()
     digitalWrite(PIN_AMP_SD, HIGH);
     pwmAudio.begin(SAMPLE_RATE, SAMPLE_BITRATE);
     pwmAudio.setStereo(false);
-    pinMode(customPins.audioOut, OUTPUT);
+    pinMode(customPins.audioOutPos, OUTPUT);
+    pinMode(customPins.audioOutNeg, OUTPUT);
     audioPlayer.play(4);
 }
 size_t position = 0;

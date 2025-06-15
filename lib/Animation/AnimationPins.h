@@ -31,7 +31,8 @@ struct AnimationPins
     const uint8_t pirSensor;        ///< PIR (Passive Infrared) motion sensor pin
     const uint8_t buttonRectangle;  ///< Rectangular button input pin
     const uint8_t buttonCircle;     ///< Circular button input pin
-    const uint8_t audioOut;         ///< Audio output pin for sound effects
+    const uint8_t audioOutPos;      ///< Positive audio output pin for sound effects
+    const uint8_t audioOutNeg;      ///< Negative audio output pin for sound effects
     const uint8_t domeLedGreen;     ///< Green LED in the dome for status indication
     const uint8_t domeLedBlue;      ///< Blue LED in the dome for status indication
 
@@ -47,9 +48,10 @@ struct AnimationPins
      * - pirSensor: 6
      * - buttonRectangle: 7
      * - buttonCircle: 8
-     * - audioOut: 9
-     * - domeLedGreen: 10
-     * - domeLedBlue: 11
+     * - audioOutPos: 9
+     * - audioOutNeg: 10
+     * - domeLedGreen: 11
+     * - domeLedBlue: 12
      */
     AnimationPins()
         : eyeNeck(1),
@@ -60,9 +62,10 @@ struct AnimationPins
           pirSensor(6),
           buttonRectangle(7),
           buttonCircle(8),
-          audioOut(9),
-          domeLedGreen(10),
-          domeLedBlue(11)
+          audioOutPos(9),
+          audioOutNeg(10),
+          domeLedGreen(11),
+          domeLedBlue(12)
     {
     }
 
@@ -83,7 +86,7 @@ struct AnimationPins
      */
     AnimationPins(uint8_t eyeNeck, uint8_t neckMotorIn1, uint8_t neckMotorIn2, uint8_t sensorLeft,
                   uint8_t sensorRight, uint8_t pirSensor, uint8_t buttonRectangle,
-                  uint8_t buttonCircle, uint8_t audioOut, uint8_t domeLedGreen, uint8_t domeLedBlue)
+                  uint8_t buttonCircle, uint8_t audioOutPos, uint8_t audioOutNeg, uint8_t domeLedGreen, uint8_t domeLedBlue)
         : eyeNeck(eyeNeck),
           neckMotorIn1(neckMotorIn1),
           neckMotorIn2(neckMotorIn2),
@@ -92,7 +95,8 @@ struct AnimationPins
           pirSensor(pirSensor),
           buttonRectangle(buttonRectangle),
           buttonCircle(buttonCircle),
-          audioOut(audioOut),
+          audioOutPos(audioOutPos),
+          audioOutNeg(audioOutNeg),
           domeLedGreen(domeLedGreen),
           domeLedBlue(domeLedBlue)
     {
