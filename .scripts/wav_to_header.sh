@@ -46,7 +46,7 @@ BASE_NAME="wav_${BASE_FILENAME}"
     echo "};";
     echo ""
     echo "// Size of the WAV data in bytes"
-    echo "const uint32_t ${BASE_NAME}_size = sizeof(${BASE_NAME}_data);"
+    echo "const size_t ${BASE_NAME}_size = sizeof(${BASE_NAME}_data);"
     echo ""
     echo "#endif // $HEADER_GUARD"
 } > "$OUTPUT_FILE"
