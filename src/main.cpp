@@ -12,19 +12,19 @@
 #include <WavData.h>
 
 // https://github.com/adafruit/Adafruit-KB2040-PCB/blob/main/Adafruit%20KB2040%20Pinout.pdf
-#define PIN_PIR_SENSOR 3        // 3
-#define PIN_DOME_LED_GREEN 4    // 4
-#define PIN_DOME_LED_BLUE 4     // 4
-#define PIN_EYE_NEOPIXEL 5      // 5
-#define PIN_BUTTON_RECTANGLE 6  // 6
-#define PIN_BUTTON_CIRCLE 7     // 7
-#define PIN_SENSOR_LEFT 8       // 8
-#define PIN_SENSOR_RIGHT 9      // 9
-#define PIN_AMP_SD 10           // 10
-#define PIN_NECK_MOTOR_IN1 26   // A0
-#define PIN_NECK_MOTOR_IN2 27   // A1
-#define PIN_AUDIO_OUT_NEG 28    // A2
-#define PIN_AUDIO_OUT_POS 29    // A3
+#define PIN_PIR_SENSOR 3        // 3  --> PIR (yellow wire)
+#define PIN_DOME_LED_GREEN 4    // 4  --> LED (green wire)
+#define PIN_DOME_LED_BLUE 4     // 4  --> LED
+#define PIN_EYE_NEOPIXEL 5      // 5  --> DATA IN (purple wire)
+#define PIN_BUTTON_RECTANGLE 6  // 6  --> BUTTON
+#define PIN_BUTTON_CIRCLE 7     // 7  --> BUTTON
+#define PIN_SENSOR_LEFT 8       // 8  --> HALL
+#define PIN_SENSOR_RIGHT 9      // 9  --> HALL
+#define PIN_AMP_SD 10           // 10 --> AMP SD
+#define PIN_NECK_MOTOR_IN1 26   // A0 --> MOT ANI2
+#define PIN_NECK_MOTOR_IN2 27   // A1 --> MOT ANI1
+#define PIN_AUDIO_OUT_NEG 28    // A2 --> AMP A-
+#define PIN_AUDIO_OUT_POS 29    // A3 --> AMP A+
 
 #define NUMPIXELS 17
 #define NEOPIXEL_BRIGHTNESS 50
@@ -97,8 +97,20 @@ size_t position = 0;
 unsigned long lastSampleTime = 0;
 void loop()
 {
+    // Read sensor inputs
+    AnimationInputs inputs = readInputs(customPins);
+
+    // Print sensor states
+    // Log.info("Sensor States:");
+    // Log.info("  Left Hall: %d", inputs.sensorLeft);
+    // Log.info("  Right Hall: %d", inputs.sensorRight);
+    // Log.info("  PIR: %d", inputs.pirSensor);
+    // Log.info("  Rectangle Button: %d", inputs.buttonRectangle);
+    // Log.info("  Circle Button: %d", inputs.buttonCircle);
+
+
     // Update animation
-    animation.update(readInputs(customPins));
+    animation.update(inputs);
     animation.performRotate();
     animation.eyeBlink();
     animation.updateSound();

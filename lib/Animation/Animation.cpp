@@ -164,20 +164,15 @@ void Animation::setRotationDirection()
         // Calculate total bias and make weighted random decision
         const float totalBias = leftBias + rightBias;
         const float randomValue = random(1000) / 1000.0f * totalBias;
-        std::cout << "Random value: " << randomValue << ", total bias: " << totalBias << std::endl;
         // Select direction based on weighted random value
         if (randomValue < leftBias)
         {
-            std::cout << "Selected LEFT direction (" << randomValue << "/" << leftBias << ")"
-                      << std::endl;
             m_motorDirection = MotorDirection::Backward;  // Left
             m_lastLeftTurnTime = m_currentTime;
             Log.debug("Selected LEFT direction (%.2f/%.2f)", randomValue, leftBias);
         }
         else
         {
-            std::cout << "Selected RIGHT direction (" << randomValue - leftBias << "/" << rightBias
-                      << ")" << std::endl;
             m_motorDirection = MotorDirection::Forward;  // Right
             m_lastRightTurnTime = m_currentTime;
             Log.debug("Selected RIGHT direction (%.2f/%.2f)", randomValue - leftBias, rightBias);

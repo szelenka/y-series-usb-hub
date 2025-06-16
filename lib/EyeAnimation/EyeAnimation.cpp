@@ -41,7 +41,7 @@ EyeAnimation::EyeAnimation(Adafruit_NeoPixel* pixels)
       m_blinkProgress(0.0f),
       m_topPixel1(0),
       m_topPixel2(NUM_PIXELS - 1),
-      m_nextBlinkDelay(0),
+      m_nextBlinkDelay  (0),
       m_blinkCount(0)
 {
     // Initialize pixel progress and order arrays
@@ -370,52 +370,35 @@ void EyeAnimation::blink(unsigned long duration)
 void EyeAnimation::sequenceBlink()
 {
     // If we're not currently blinking
-    if (!m_blinkCount)
-    {
-        // Start a new sequence of 2-4 blinks
-        m_blinkCount = 2 + (m_currentTime % 3);  // 2-4 blinks
-        m_nextBlinkDelay = 0;
-        m_blinkEndTime =
-            m_currentTime + (m_blinkCount * 150) + 100;  // 150ms per blink + 100ms buffer
-        Log.debug("Starting blink sequence: %d blinks", m_blinkCount);
-    }
-
-    // If we're not currently in a blink and have more to do
-    if (!m_isBlinking && m_blinkCount > 0)
-    {
-        // Small delay between blinks in a sequence (100-200ms)
-        static unsigned long lastBlinkEnd = 0;
-        if (m_currentTime - lastBlinkEnd >= 150)
-        {
-            uint8_t duration = random(100, 400);
-            blink(duration);                          // 300ms per blink
-            lastBlinkEnd = m_currentTime + duration;  // Update when this blink will end
+    if (!m_isBlinking) {
+        // If we have more blinks in the sequence, start the next one
+        if (m_blinkCount > 0) {
+            // Small delay between blinks in a sequence (100-200ms)
+            static unsigned long lastBlinkEnd = 0;
+            if (m_currentTime - lastBlinkEnd >= 150) {
+                uint8_t duration = random(100, 400);
+                blink(duration);  // 300ms per blink
+                lastBlinkEnd = m_currentTime + duration;  // Update when this blink will end
+            }
+        } 
+        // If no more blinks in sequence, schedule next sequence
+        else if (m_nextBlinkDelay == 0) {
+            // Set a random delay before next blink sequence (2-8 seconds)
+            m_nextBlinkDelay = m_currentTime + random(2000, 8000);
         }
-    }
-    // If no more blinks in sequence, schedule next sequence
-    else if (m_nextBlinkDelay == 0)
-    {
-        // Set a random delay before next blink sequence (2-8 seconds)
-        m_nextBlinkDelay = m_currentTime + random(2000, 8000);
-    }
-    // If it's time for a new blink sequence
-    else if (m_currentTime >= m_nextBlinkDelay)
-    {
-        // 70% chance of single blink, 25% double blink, 5% triple blink
-        uint8_t r = random(100);
-        if (r < 70)
-        {
-            m_blinkCount = 1;
+        // If it's time for a new blink sequence
+        else if (m_currentTime >= m_nextBlinkDelay) {
+            // 70% chance of single blink, 25% double blink, 5% triple blink
+            uint8_t r = random(100);
+            if (r < 70) {
+                m_blinkCount = 1;
+            } else if (r < 95) {
+                m_blinkCount = 2;
+            } else {
+                m_blinkCount = 3;
+            }
+            m_nextBlinkDelay = 0;  // Reset for next sequence
         }
-        else if (r < 95)
-        {
-            m_blinkCount = 2;
-        }
-        else
-        {
-            m_blinkCount = 3;
-        }
-        m_nextBlinkDelay = 0;  // Reset for next sequence
     }
 }
 
