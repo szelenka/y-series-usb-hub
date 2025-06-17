@@ -64,14 +64,14 @@ void Animation::rotate(uint8_t speed, MotorDirection direction)
     // Control motor based on direction
     switch (direction)
     {
-        case MotorDirection::Forward:
-            analogWrite(m_pins.neckMotorIn1, effectiveSpeed);
-            analogWrite(m_pins.neckMotorIn2, LOW);
-            break;
-
-        case MotorDirection::Backward:
+        case MotorDirection::Right:
             analogWrite(m_pins.neckMotorIn2, effectiveSpeed);
             analogWrite(m_pins.neckMotorIn1, LOW);
+            break;
+
+        case MotorDirection::Left:
+            analogWrite(m_pins.neckMotorIn1, effectiveSpeed);
+            analogWrite(m_pins.neckMotorIn2, LOW);
             break;
 
         case MotorDirection::Stop:
@@ -108,19 +108,19 @@ void Animation::setRotationDirection()
     // Check limit sensors first - these take highest priority
     if (m_inputSensorLeft == LOW)
     {
-        // If left sensor is triggered, ensure we move right (forward)
-        m_motorDirection = MotorDirection::Forward;
-        m_randomRotateTimer = 750;  // Give enough time to move away from the limit
-        Log.debug("Left limit hit, moving right");
-        return;
+            // Normal case: moving right and hit left sensor, reverse to right
+            m_motorDirection = MotorDirection::Right;
+            m_randomRotateTimer = m_currentTime + AnimationConstants::kMinDirectionTime;  // Give enough time to move away from the limit
+            m_lastRightTurnTime = m_currentTime;
+            return;
     }
     else if (m_inputSensorRight == LOW)
     {
-        // If right sensor is triggered, ensure we move left (backward)
-        m_motorDirection = MotorDirection::Backward;
-        m_randomRotateTimer = 750;  // Give enough time to move away from the limit
-        Log.debug("Right limit hit, moving left");
-        return;
+            // Normal case: moving left and hit right sensor, reverse to left
+            m_motorDirection = MotorDirection::Left;
+            m_randomRotateTimer = m_currentTime + AnimationConstants::kMinDirectionTime;  // Give enough time to move away from the limit
+            m_lastLeftTurnTime = m_currentTime;
+            return;
     }
 
     // If no sensor is triggered, handle random direction changes
@@ -167,13 +167,13 @@ void Animation::setRotationDirection()
         // Select direction based on weighted random value
         if (randomValue < leftBias)
         {
-            m_motorDirection = MotorDirection::Backward;  // Left
+            m_motorDirection = MotorDirection::Left;
             m_lastLeftTurnTime = m_currentTime;
             Log.debug("Selected LEFT direction (%.2f/%.2f)", randomValue, leftBias);
         }
         else
         {
-            m_motorDirection = MotorDirection::Forward;  // Right
+            m_motorDirection = MotorDirection::Right;
             m_lastRightTurnTime = m_currentTime;
             Log.debug("Selected RIGHT direction (%.2f/%.2f)", randomValue - leftBias, rightBias);
         }
@@ -187,7 +187,7 @@ void Animation::setRotationDirection()
     // Check if it's time to change direction
     if (m_currentTime >= m_randomRotateTimer)
     {
-        Log.debug("[Animation] Direction timer expired");
+        Log.info("[Animation] Direction timer expired");
         m_randomRotateTimer = 0;  // Will trigger direction change in next call
     }
 }
@@ -259,7 +259,7 @@ void Animation::handlePirTriggered()
     m_lastPIRTimer = m_currentTime;
 
     // Calculate how long we've been moving in the current direction
-    const bool isMovingLeft = (m_motorDirection == MotorDirection::Backward);
+    const bool isMovingLeft = (m_motorDirection == MotorDirection::Left);
     const uint32_t directionDuration =
         m_currentTime - (isMovingLeft ? m_lastLeftTurnTime : m_lastRightTurnTime);
 
@@ -300,10 +300,6 @@ void Animation::handlePirInactive()
     if (m_lastPIRState == HIGH)
     {
         Log.info("Motion no longer detected, starting inactivity timer");
-
-        // Reset timers and state for next activation
-        m_randomRotateTimer = 0;
-        stop();
     }
 
     // Update PIR state

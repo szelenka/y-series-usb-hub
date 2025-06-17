@@ -43,23 +43,22 @@ namespace AnimationConstants
 {
 /// @name Motor Control
 /// @{
-constexpr uint8_t kMaxMotorSpeed = 255;    ///< Maximum allowed motor speed (0-255)
-constexpr uint8_t kMinSpeed = 80;          ///< Minimum motor speed for operation
-constexpr uint32_t kSpeedRampTime = 2000;  ///< Time (ms) to ramp speed up/down
+constexpr uint8_t kMaxMotorSpeed = 144;    ///< Maximum allowed motor speed (0-255)
+constexpr uint8_t kMinSpeed = 112;          ///< Minimum motor speed for operation
+constexpr uint32_t kSpeedRampTime = 500;  ///< Time (ms) to ramp speed up/down
 /// @}
 
 /// @name Rotation Timing
 /// @{
 constexpr uint32_t kMinRotateInterval = 500;   ///< Minimum time (ms) between direction changes
 constexpr uint32_t kMaxRotateInterval = 1000;  ///< Maximum time (ms) between direction changes
-constexpr uint32_t kMinDirectionTime = 200;  ///< Min time (ms) before considering direction change
+constexpr uint32_t kMinDirectionTime = 500;  ///< Min time (ms) before considering direction change
 constexpr uint32_t kMaxDirectionTime =
-    2000;  ///< Time (ms) after which direction is strongly preferred
+    1500;  ///< Time (ms) after which direction is strongly preferred
 /// @}
 
 /// @name PIR Sensor Timing
 /// @{
-constexpr uint32_t kPirTimeout = 5000;         ///< Time (ms) after PIR trigger before stopping
 constexpr uint32_t kInactivityTimeout = 5000;  ///< Time (ms) of inactivity before stopping
 /// @}
 
@@ -80,9 +79,9 @@ constexpr float kStrongerBias = 3.0f;  ///< Bias when it's been a long time sinc
  */
 enum class MotorDirection : int8_t
 {
-    Stop = 0,      ///< Motor is not moving
-    Forward = 1,   ///< Motor is rotating in the forward direction
-    Backward = -1  ///< Motor is rotating in the backward direction
+    Stop = 0,    ///< Motor is not moving
+    Right = 1,   ///< Motor is rotating to the right
+    Left = -1    ///< Motor is rotating to the left
 };
 
 /**
@@ -182,7 +181,7 @@ public:
      * @brief Controls motor rotation with specified speed and direction
      *
      * @param[in] speed Motor speed (0-255)
-     * @param[in] direction Direction of rotation (Forward/Backward/Stop)
+     * @param[in] direction Direction of rotation (Right/Left/Stop)
      *
      * @note Actual speed may be limited by kMinSpeed and kMaxMotorSpeed constants
      */

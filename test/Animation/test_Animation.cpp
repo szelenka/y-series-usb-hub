@@ -92,7 +92,7 @@ void test_set_rotation_direction_random()
     Animation i(nullptr, nullptr, pins);
 
     // Set initial state
-    i.setMotorDirection(MotorDirection::Forward);
+    i.setMotorDirection(MotorDirection::Right);
     i.setRandomRotateTimer(0);
     i.setLastLeftTurnTime(0);
     i.setLastRightTurnTime(0);
@@ -106,9 +106,9 @@ void test_set_rotation_direction_random()
     std::cout << "Calling animation->setRotationDirection()..." << std::endl;
     i.setRotationDirection();
 
-    // Verify direction was set to Forward (left bias)
-    std::cout << "Verifying direction was set to Forward..." << std::endl;
-    TEST_ASSERT_EQUAL(MotorDirection::Forward, i.getMotorDirection());
+    // Verify direction was set to Right (left bias)
+    std::cout << "Verifying direction was set to Right..." << std::endl;
+    TEST_ASSERT_EQUAL(MotorDirection::Right, i.getMotorDirection());
     TEST_ASSERT_GREATER_THAN(0, i.getRandomRotateTimer());
 }
 
@@ -138,7 +138,7 @@ void test_perform_rotate()
     Animation i(nullptr, &audioPlayerMock.get(), pins);
 
     // Set initial state
-    i.setMotorDirection(MotorDirection::Forward);
+    i.setMotorDirection(MotorDirection::Right);
     i.setRandomRotateTimer(0);
     i.setLastLeftTurnTime(0);
     i.setLastRightTurnTime(0);
@@ -157,7 +157,7 @@ void test_perform_rotate()
     TEST_ASSERT_GREATER_THAN(0, i.getLastPIRTimer());
 
     // Verify that last turn time was updated
-    TEST_ASSERT_EQUAL(MotorDirection::Forward, i.getMotorDirection());
+    TEST_ASSERT_EQUAL(MotorDirection::Right, i.getMotorDirection());
 }
 
 void test_set_rotation_direction_with_sensor_trip()
@@ -174,38 +174,40 @@ void test_set_rotation_direction_with_sensor_trip()
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
 
     Animation i(nullptr, nullptr, pins);
+    Log.setLogLevel(LogLevel::NONE);
+    uint16_t currentTime = 1000;
 
     // Set initial state
-    i.setMotorDirection(MotorDirection::Forward);
+    i.setMotorDirection(MotorDirection::Right);
     i.setRandomRotateTimer(0);
     i.setLastLeftTurnTime(0);
     i.setLastRightTurnTime(0);
-    i.setCurrentTime(1000);
+    i.setCurrentTime(currentTime);
     i.setLastPIRTimer(0);
 
-    // Set sensor inputs: PIR HIGH, SensorLeft HIGH
+    // Set sensor inputs: PIR HIGH, SensorRight LOW
     i.setInputPIRSensor(HIGH);
     i.setInputSensorLeft(HIGH);
     i.setInputSensorRight(LOW);
 
-    std::cout << "Calling animation->setRotationDirection() with SensorLeft HIGH..." << std::endl;
+    std::cout << "Calling animation->setRotationDirection() with SensorRight LOW..." << std::endl;
     i.setRotationDirection();
 
-    // The direction should now be reversed (not Forward)
-    TEST_ASSERT_EQUAL(MotorDirection::Backward, i.getMotorDirection());
-    TEST_ASSERT_EQUAL(750, i.getRandomRotateTimer());
+    // The direction should now be reversed (not Right)
+    TEST_ASSERT_EQUAL(MotorDirection::Left, i.getMotorDirection());
+    TEST_ASSERT_EQUAL(currentTime + AnimationConstants::kMinDirectionTime, i.getRandomRotateTimer());
 
-    // Set sensor inputs: PIR HIGH, SensorRight HIGH
+    // Set sensor inputs: PIR HIGH, SensorLeft LOW
     i.setInputPIRSensor(HIGH);
     i.setInputSensorLeft(LOW);
     i.setInputSensorRight(HIGH);
 
-    std::cout << "Calling animation->setRotationDirection() with SensorRight HIGH..." << std::endl;
+    std::cout << "Calling animation->setRotationDirection() with SensorLeft LOW..." << std::endl;
     i.setRotationDirection();
 
-    // The direction should now be reversed (not Forward)
-    TEST_ASSERT_EQUAL(MotorDirection::Forward, i.getMotorDirection());
-    TEST_ASSERT_EQUAL(750, i.getRandomRotateTimer());
+    // The direction should now be reversed (not Left)
+    TEST_ASSERT_EQUAL(MotorDirection::Right, i.getMotorDirection());
+    TEST_ASSERT_EQUAL(currentTime + AnimationConstants::kMinDirectionTime, i.getRandomRotateTimer());
 }
 
 void test_perform_rotate_pir_not_triggered_no_timeout()
@@ -224,7 +226,7 @@ void test_perform_rotate_pir_not_triggered_no_timeout()
     Log.setLogLevel(LogLevel::NONE);
 
     // Set initial state
-    i.setMotorDirection(MotorDirection::Forward);
+    i.setMotorDirection(MotorDirection::Right);
     i.setRandomRotateTimer(0);
     i.setLastLeftTurnTime(0);
     i.setLastRightTurnTime(0);
@@ -264,7 +266,7 @@ void test_perform_rotate_pir_not_triggered_timeout()
     Animation i(nullptr, &audioPlayerMock.get(), pins);
 
     // Set initial state
-    i.setMotorDirection(MotorDirection::Forward);
+    i.setMotorDirection(MotorDirection::Right);
     i.setRandomRotateTimer(0);
     i.setLastLeftTurnTime(0);
     i.setLastRightTurnTime(0);
@@ -352,30 +354,30 @@ void test_rotate()
     Animation animation(nullptr, nullptr, pins);
     Log.setLogLevel(LogLevel::NONE);
 
-    // Test 1: Forward direction
+    // Test 1: Right direction
     {
         // Clear previous calls
         ArduinoFake().ClearInvocationHistory();
 
-        // Call rotate with forward direction
-        animation.rotate(200, MotorDirection::Forward);
+        // Call rotate with right direction
+        animation.rotate(AnimationConstants::kMaxMotorSpeed, MotorDirection::Right);
 
-        // Verify motor was set to forward
-        Verify(Method(ArduinoFake(), analogWrite).Using(pins.neckMotorIn1, 200)).Once();
-        Verify(Method(ArduinoFake(), analogWrite).Using(pins.neckMotorIn2, 0)).Once();
+        // Verify motor was set to right
+        Verify(Method(ArduinoFake(), analogWrite).Using(pins.neckMotorIn2, AnimationConstants::kMaxMotorSpeed)).Once();
+        Verify(Method(ArduinoFake(), analogWrite).Using(pins.neckMotorIn1, 0)).Once();
     }
 
-    // Test 2: Backward direction
+    // Test 2: Left direction
     {
         // Reset mock call counters
         ArduinoFake().ClearInvocationHistory();
 
-        // Call rotate with backward direction
-        animation.rotate(150, MotorDirection::Backward);
+        // Call rotate with left direction
+        animation.rotate(AnimationConstants::kMaxMotorSpeed, MotorDirection::Left);
 
-        // Verify motor was set to backward
-        Verify(Method(ArduinoFake(), analogWrite).Using(pins.neckMotorIn2, 150)).Once();
-        Verify(Method(ArduinoFake(), analogWrite).Using(pins.neckMotorIn1, 0)).Once();
+        // Verify motor was set to left
+        Verify(Method(ArduinoFake(), analogWrite).Using(pins.neckMotorIn1, AnimationConstants::kMaxMotorSpeed)).Once();
+        Verify(Method(ArduinoFake(), analogWrite).Using(pins.neckMotorIn2, 0)).Once();
     }
 
     // Test 3: Stop
@@ -388,7 +390,7 @@ void test_rotate()
             .Do([](const char* str) { return strlen(str); });
 
         // Call rotate with stop
-        animation.rotate(100, MotorDirection::Stop);
+        animation.rotate(AnimationConstants::kMaxMotorSpeed, MotorDirection::Stop);
 
         // Verify motor was stopped
         Verify(Method(ArduinoFake(), analogWrite).Using(pins.neckMotorIn1, 0)).Once();
@@ -425,12 +427,12 @@ void test_perform_rotate_backward_duration()
     // Create animation object
     Animation animation(nullptr, &audioPlayerMock.get(), pins);
 
-    // Test case: Backward direction
+    // Test case: Left direction
     const unsigned long baseTime = 1000;
     const unsigned long elapsedTime = 500;  // 500ms since last turn
 
     // Setup test conditions
-    animation.setMotorDirection(MotorDirection::Backward);
+    animation.setMotorDirection(MotorDirection::Left);
     animation.setLastRightTurnTime(baseTime);          // Set the last right turn time
     animation.setCurrentTime(baseTime + elapsedTime);  // Current time is 500ms later
     animation.setInputPIRSensor(HIGH);                 // Enable PIR sensor
@@ -440,9 +442,9 @@ void test_perform_rotate_backward_duration()
 
     // Verify the correct time was used for duration calculation
     // The test passes if it reaches this point without crashing
-    // and the motor was set to move backward
+    // and the motor was set to move left
     Verify(Method(ArduinoFake(), analogWrite)
-               .Matching([&](int pin, int speed) { return pin == pins.neckMotorIn1 && speed > 0; }))
+               .Matching([&](int pin, int speed) { return pin == pins.neckMotorIn2 && speed > 0; }))
         .AtLeastOnce();
 }
 
@@ -506,12 +508,12 @@ void test_set_rotation_direction_bias()
         // Debug output for actual direction and timer
         MotorDirection actualDirection = animation.getMotorDirection();
         std::cout << "  Result - Direction: "
-                  << (actualDirection == MotorDirection::Forward ? "Forward" : "Backward")
+                  << (actualDirection == MotorDirection::Right ? "Right" : "Left")
                   << ", Random Timer: " << static_cast<int>(animation.getRandomRotateTimer())
                   << " (current time: " << baseTime << ")" << std::endl;
 
         // Verify left bias was applied (Clockwise)
-        TEST_ASSERT_EQUAL(MotorDirection::Forward, actualDirection);
+        TEST_ASSERT_EQUAL(MotorDirection::Right, actualDirection);
 
         // Set random to always choose the second option (right)
         When(OverloadedMethod(ArduinoFake(), random, long(long))).AlwaysReturn(0);
@@ -521,7 +523,7 @@ void test_set_rotation_direction_bias()
         animation.setRotationDirection();
 
         // Verify right bias was applied (CounterClockwise)
-        TEST_ASSERT_EQUAL(MotorDirection::Backward, animation.getMotorDirection());
+        TEST_ASSERT_EQUAL(MotorDirection::Left, animation.getMotorDirection());
 
         // Verify random timer was set
         TEST_ASSERT_GREATER_THAN(baseTime, animation.getRandomRotateTimer());
@@ -539,7 +541,7 @@ void test_set_rotation_direction_bias()
         animation.setRotationDirection();
 
         // Verify timer was reset
-        TEST_ASSERT_EQUAL(750, animation.getRandomRotateTimer());
+        TEST_ASSERT_EQUAL(baseTime + AnimationConstants::kMinDirectionTime, animation.getRandomRotateTimer());
     }
 }
 
