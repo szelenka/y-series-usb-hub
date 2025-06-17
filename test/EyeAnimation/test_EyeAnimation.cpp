@@ -56,7 +56,7 @@ void test_eye_animation_set_color()
     EyeAnimation eye(&pixelsMock.get());
 
     // Set color and update
-    eye.setDefaultColor(0x12, 0x34, 0x56);
+    eye.setActiveColor(0x123456);
     eye.setCurrentTime(0);
 }
 

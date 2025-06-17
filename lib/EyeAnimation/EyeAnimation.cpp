@@ -12,15 +12,6 @@
 
 #include "EyeAnimation.h"
 
-// Constants
-namespace
-{
-constexpr uint32_t DEFAULT_EYE_COLOR = 0x000080;       // Dark blue
-constexpr uint16_t NUM_PIXELS = 16;                    // Number of LEDs in the eye ring
-constexpr uint8_t DEFAULT_BRIGHTNESS = 255;            // Maximum brightness
-constexpr unsigned long DEFAULT_BLINK_DURATION = 300;  // ms for a complete blink
-}  // namespace
-
 /**
  * @brief Construct a new EyeAnimation object
  *
@@ -30,22 +21,23 @@ EyeAnimation::EyeAnimation(Adafruit_NeoPixel* pixels)
     : m_pixels(pixels),
       m_rainbowIndex(0),
       m_rainbowTimer(0),
-      m_defaultColor(DEFAULT_EYE_COLOR),
-      m_brightness(DEFAULT_BRIGHTNESS),
+      m_activeColor(EyeAnimationConstants::COLOR_BLUE),
+      m_brightness(EyeAnimationConstants::DEFAULT_BRIGHTNESS),
       m_currentTime(0),
       m_isBlinking(false),
       m_blinkStartTime(0),
-      m_blinkDuration(DEFAULT_BLINK_DURATION),
+      m_blinkDuration(EyeAnimationConstants::DEFAULT_BLINK_DURATION),
       m_blinkEndTime(0),
       m_blinkPhase(0),
       m_blinkProgress(0.0f),
       m_topPixel1(0),
-      m_topPixel2(NUM_PIXELS - 1),
-      m_nextBlinkDelay  (0),
-      m_blinkCount(0)
+      m_topPixel2(EyeAnimationConstants::NUM_PIXELS - 1),
+      m_nextBlinkDelay(0),
+      m_blinkCount(0),
+      m_lastColorChangeTime(0)
 {
     // Initialize pixel progress and order arrays
-    for (uint8_t i = 0; i < NUM_PIXELS; i++)
+    for (uint8_t i = 0; i < EyeAnimationConstants::NUM_PIXELS; i++)
     {
         m_pixelProgress[i] = 0.0f;
         m_pixelOrder[i] = i;  // Default order (will be updated by setTopPixels)
@@ -59,34 +51,11 @@ EyeAnimation::EyeAnimation(Adafruit_NeoPixel* pixels)
 }
 
 /**
- * @brief Set the default eye color
- *
- * @param[in] r Red component (0-255)
- * @param[in] g Green component (0-255)
- * @param[in] b Blue component (0-255)
- */
-void EyeAnimation::setDefaultColor(uint8_t r, uint8_t g, uint8_t b)
-{
-    m_defaultColor = ((static_cast<uint32_t>(r) << 16) | (static_cast<uint32_t>(g) << 8) |
-                      static_cast<uint32_t>(b));
-}
-
-/**
- * @brief Set the global brightness for all LEDs
- *
- * @param[in] brightness Brightness value (0-255)
- */
-void EyeAnimation::setBrightness(uint8_t brightness)
-{
-    m_brightness = brightness;
-}
-
-/**
  * @brief Update the eyes with a rainbow animation effect
  *
  * @note This should be called regularly from the main loop
  */
-void EyeAnimation::updateRainbow()
+void EyeAnimation::updateRainbowColor()
 {
     if (!m_pixels)
         return;
@@ -115,22 +84,31 @@ void EyeAnimation::updateRainbow()
 }
 
 /**
- * @brief Update the eyes with the default solid color
+ * @brief Update the eyes with the active solid color
  *
  * @note This should be called regularly from the main loop
  */
-void EyeAnimation::updateDefault()
+void EyeAnimation::updateActiveColor()
 {
     if (!m_pixels)
         return;
 
-    // Set all pixels to the default color
-    setAllPixelsColor(m_defaultColor);
+    // Set all pixels to the active color
+    setAllPixelsColor(m_activeColor);
 
     // Update blink animation if active
     updateBlink();
 
     // Update the display
+    m_pixels->show();
+}
+
+/**
+ * @brief Put the eye animation to sleep
+ */
+void EyeAnimation::sleep()
+{
+    setAllPixelsColor(0);
     m_pixels->show();
 }
 
@@ -348,7 +326,7 @@ void EyeAnimation::blink(unsigned long duration)
 
     m_isBlinking = true;
     m_blinkStartTime = m_currentTime;
-    m_blinkDuration = duration > 0 ? duration : DEFAULT_BLINK_DURATION;
+    m_blinkDuration = duration > 0 ? duration : EyeAnimationConstants::DEFAULT_BLINK_DURATION;
     m_blinkPhase = 1;  // Start closing
     m_blinkProgress = 0.0f;
     m_blinkEndTime = m_blinkStartTime + m_blinkDuration;
@@ -377,7 +355,7 @@ void EyeAnimation::sequenceBlink()
             static unsigned long lastBlinkEnd = 0;
             if (m_currentTime - lastBlinkEnd >= 150) {
                 uint8_t duration = random(100, 400);
-                blink(duration);  // 300ms per blink
+                blink(duration);
                 lastBlinkEnd = m_currentTime + duration;  // Update when this blink will end
             }
         } 
@@ -526,4 +504,16 @@ bool EyeAnimation::updateBlink()
                                 1.0f - m_pixelProgress[centerPixelRef] * 255);
 
     return true;
+}
+
+void EyeAnimation::rotateActiveColor()
+{
+    // Only change color if enough time has passed
+    if (m_currentTime - m_lastColorChangeTime >= EyeAnimationConstants::COLOR_CHANGE_DELAY)
+    {
+        m_activeColor = (m_activeColor == EyeAnimationConstants::COLOR_BLUE) 
+            ? EyeAnimationConstants::COLOR_GREEN 
+            : EyeAnimationConstants::COLOR_BLUE;
+        m_lastColorChangeTime = m_currentTime;
+    }
 }

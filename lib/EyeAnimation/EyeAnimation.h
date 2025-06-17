@@ -29,6 +29,25 @@
 #include <Logger.h>
 
 /**
+ * @brief Contains constants used by the EyeAnimation class
+ */
+namespace EyeAnimationConstants
+{
+    /// @name Color Definitions
+    /// @{
+    constexpr uint32_t COLOR_BLACK = 0x000000;    ///< Black (off)
+    constexpr uint32_t COLOR_BLUE = 0x21DDF5;    ///< Blue eye
+    constexpr uint32_t COLOR_GREEN = 0x65F9B4;      ///< Green eye
+    /// @}
+
+    constexpr uint16_t NUM_PIXELS = 16;                    // Number of LEDs in the eye ring
+    constexpr uint8_t DEFAULT_BRIGHTNESS = 255;            // Maximum brightness
+    constexpr unsigned long DEFAULT_BLINK_DURATION = 300;  // ms for a complete blink
+    constexpr unsigned long COLOR_CHANGE_DELAY = 1000;      // ms between color changes
+};
+
+
+/**
  * @brief Controls eye animations using NeoPixel LEDs
  *
  * @details
@@ -72,20 +91,18 @@ public:
     virtual void setTopPixels(uint8_t topPixel1, uint8_t topPixel2);
 
     /**
-     * @brief Set the default eye color
+     * @brief Set the active eye color
      *
-     * @param[in] r Red component (0-255)
-     * @param[in] g Green component (0-255)
-     * @param[in] b Blue component (0-255)
+     * @param[in] color 32-bit color value (0x00RRGGBB)
      */
-    virtual void setDefaultColor(uint8_t r, uint8_t g, uint8_t b);
+    virtual void setActiveColor(uint32_t color) { m_activeColor = color; }
 
     /**
      * @brief Set the global brightness
      *
      * @param[in] brightness Brightness value (0-255)
      */
-    virtual void setBrightness(uint8_t brightness);
+    virtual void setBrightness(uint8_t brightness) { m_brightness = brightness; }
 
     /**
      * @brief Set the current time for animation timing
@@ -104,14 +121,24 @@ public:
      *
      * @note This should be called regularly from the main loop
      */
-    virtual void updateRainbow();
+    virtual void updateRainbowColor();
 
     /**
-     * @brief Update the eyes with the default solid color
+     * @brief Update the eyes with the active solid color
      *
      * @note This should be called regularly from the main loop
      */
-    virtual void updateDefault();
+    virtual void updateActiveColor();
+
+    /**
+     * @brief Rotate the eye color in sequence
+     */
+    virtual void rotateActiveColor();
+
+    /**
+     * @brief Put the eye animation to sleep
+     */
+    virtual void sleep();
 
     /**
      * @brief Start a blink animation
@@ -185,7 +212,7 @@ private:
     // Animation state
     uint16_t m_rainbowIndex;       ///< Current position in rainbow animation
     unsigned long m_rainbowTimer;  ///< Timer for rainbow animation updates
-    uint32_t m_defaultColor;       ///< Default eye color (0x00RRGGBB)
+    uint32_t m_activeColor;       ///< Active eye color (0x00RRGGBB)
     uint8_t m_brightness;          ///< Global brightness (0-255)
     unsigned long m_currentTime;   ///< Current time in milliseconds
 
@@ -202,6 +229,7 @@ private:
     uint8_t m_pixelOrder[16];        ///< Animation order for pixels during blink
     unsigned long m_nextBlinkDelay;  ///< Delay until next blink in sequence
     uint8_t m_blinkCount;            ///< Number of blinks in current sequence
+    unsigned long m_lastColorChangeTime;  ///< Time of last color change
 
     /// @}
 };
