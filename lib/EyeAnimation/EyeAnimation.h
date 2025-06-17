@@ -37,7 +37,7 @@ namespace EyeAnimationConstants
 /// @{
 constexpr uint32_t COLOR_BLACK = 0x000000;  ///< Black (off)
 constexpr uint32_t COLOR_BLUE = 0x21DDF5;   ///< Blue eye
-constexpr uint32_t COLOR_GREEN = 0x65F9B4;  ///< Green eye
+constexpr uint32_t COLOR_GREEN = 0x0BBD39;  ///< Green eye
 /// @}
 
 constexpr uint16_t NUM_PIXELS = 16;                    // Number of LEDs in the eye ring
