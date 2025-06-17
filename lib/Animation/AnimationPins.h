@@ -86,7 +86,8 @@ struct AnimationPins
      */
     AnimationPins(uint8_t eyeNeck, uint8_t neckMotorIn1, uint8_t neckMotorIn2, uint8_t sensorLeft,
                   uint8_t sensorRight, uint8_t pirSensor, uint8_t buttonRectangle,
-                  uint8_t buttonCircle, uint8_t audioOutPos, uint8_t audioOutNeg, uint8_t domeLedGreen, uint8_t domeLedBlue)
+                  uint8_t buttonCircle, uint8_t audioOutPos, uint8_t audioOutNeg,
+                  uint8_t domeLedGreen, uint8_t domeLedBlue)
         : eyeNeck(eyeNeck),
           neckMotorIn1(neckMotorIn1),
           neckMotorIn2(neckMotorIn2),

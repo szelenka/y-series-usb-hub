@@ -6,7 +6,7 @@
  *
  * @details
  * This file contains the implementation of the AudioPlayer class which handles
- * WAV audio file playback using the ROMBackgroundAudioWAV library.
+ * WAV audio file playback using the TimerAudio library.
  */
 
 #include "AudioPlayer.h"
@@ -14,12 +14,12 @@
 /**
  * @brief Construct a new AudioPlayer instance
  *
- * @param[in] player Pointer to the ROMBackgroundAudioWAV instance
+ * @param[in] player Pointer to the TimerAudio instance
  *
  * @note The constructor initializes the audio player and sets up sound data pointers.
  *       If initialization fails, the instance will be in an error state.
  */
-AudioPlayer::AudioPlayer(ROMBackgroundAudioWAV* player)
+AudioPlayer::AudioPlayer(TimerAudio* player)
     : m_player(player), m_state(WAVState::Stopped), m_currentSoundIndex(-1)
 {
     if (!m_player)
@@ -28,20 +28,7 @@ AudioPlayer::AudioPlayer(ROMBackgroundAudioWAV* player)
         return;
     }
 
-    // Initialize the audio player hardware
-    if (!m_player->begin())
-    {
-        Log.error("Failed to initialize audio player");
-        return;
-    }
-
-    // Initialize WAV data pointers from program memory
-    for (size_t i = 0; i < NUM_SOUND_FILES; i++)
-    {
-        m_soundData[i] = sound_data_pointers[i];
-        m_soundDataSizes[i] = sound_data_sizes[i];
-        Log.debug("Sound %zu: %p, %zu bytes", i, m_soundData[i], m_soundDataSizes[i]);
-    }
+    Log.info("AudioPlayer initialized with TimerAudio");
 }
 
 /**
@@ -74,20 +61,22 @@ bool AudioPlayer::play(int index)
         stop();
     }
 
-    // Start playback of the requested sound
+    // Start playback of the requested sound using TimerAudio
     Log.info("Starting playback of sound %d", index);
-    const size_t writeResult = m_player->write(m_soundData[index], m_soundDataSizes[index]);
+    m_player->playWAV(index);
 
-    if (writeResult > 0)
+    if (m_player->isPlaying())
     {
         m_state = WAVState::Playing;
         m_currentSoundIndex = index;
-        Log.debug("Playback started: %d (%zu bytes written)", index, writeResult);
+        Log.info("Sound %d playback started successfully", index);
         return true;
     }
-
-    Log.error("Failed to start playback of sound %d (write result: %zu)", index, writeResult);
-    return false;
+    else
+    {
+        Log.error("Failed to start playback of sound %d", index);
+        return false;
+    }
 }
 
 /**
@@ -100,11 +89,16 @@ void AudioPlayer::stop()
 {
     if (!m_player)
     {
-        return;  // Nothing to stop if player is not initialized
+        Log.error("Cannot stop - audio player not initialized");
+        return;
     }
 
-    Log.debug("Stopping playback of sound %d", m_currentSoundIndex);
-    m_player->flush();
+    if (m_state == WAVState::Playing)
+    {
+        Log.info("Stopping playback of sound %d", m_currentSoundIndex);
+        m_player->stop();
+    }
+
     m_state = WAVState::Stopped;
     m_currentSoundIndex = -1;
 }
@@ -118,11 +112,17 @@ void AudioPlayer::stop()
  */
 void AudioPlayer::update()
 {
-    // Automatically transition from Playing to Stopped when playback completes
-    if (m_state == WAVState::Playing && m_player->done())
+    if (!m_player)
     {
-        Log.debug("Playback completed for sound %d", m_currentSoundIndex);
-        stop();
+        return;
+    }
+
+    // Check if playback has completed
+    if (m_state == WAVState::Playing && !m_player->isPlaying())
+    {
+        Log.info("Sound %d playback completed", m_currentSoundIndex);
+        m_state = WAVState::Stopped;
+        m_currentSoundIndex = -1;
     }
 }
 
@@ -138,13 +138,13 @@ bool AudioPlayer::playRandomSound()
 {
     if (NUM_SOUND_FILES <= 1)
     {
-        Log.warning("Not enough sounds available for random selection");
+        Log.warning("No sounds available for random playback");
         return false;
     }
 
-    // Generate random index between 0 and NUM_SOUND_FILES-1
-    const int index = random(NUM_SOUND_FILES - 1);
-    Log.debug("Selected random sound: %d/%zu", index, NUM_SOUND_FILES - 1);
+    // Generate random index (skip index 0 for system sounds)
+    const int randomIndex = (rand() % (NUM_SOUND_FILES - 1)) + 1;
 
-    return play(index);
+    Log.info("Playing random sound %d", randomIndex);
+    return play(randomIndex);
 }

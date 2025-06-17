@@ -43,14 +43,14 @@ namespace AnimationConstants
 {
 /// @name Motor Control
 /// @{
-constexpr uint8_t kMaxMotorSpeed = 112;         ///< Maximum allowed motor speed (0-255)
-constexpr uint8_t kMinSpeed = 80;               ///< Minimum motor speed for operation
-constexpr uint32_t kSpeedRampTime = 500;        //< Time (ms) to ramp speed up/down
-constexpr uint32_t kMinMovementInterval = 5000; // Min time between movements (ms)
-constexpr uint32_t kMaxMovementInterval = 25000; // Max time between movements (ms)
-constexpr uint32_t kMinMovementDuration = 500;  // Min duration of a single movement (ms)
-constexpr uint32_t kMaxMovementDuration = 2000; // Max duration of a single movement (ms)
-constexpr uint8_t kMovementChance = 30;         // 30% chance to move when motion is detected
+constexpr uint8_t kMaxMotorSpeed = 112;           ///< Maximum allowed motor speed (0-255)
+constexpr uint8_t kMinSpeed = 80;                 ///< Minimum motor speed for operation
+constexpr uint32_t kSpeedRampTime = 500;          //< Time (ms) to ramp speed up/down
+constexpr uint32_t kMinMovementInterval = 5000;   // Min time between movements (ms)
+constexpr uint32_t kMaxMovementInterval = 25000;  // Max time between movements (ms)
+constexpr uint32_t kMinMovementDuration = 500;    // Min duration of a single movement (ms)
+constexpr uint32_t kMaxMovementDuration = 2000;   // Max duration of a single movement (ms)
+constexpr uint8_t kMovementChance = 30;           // 30% chance to move when motion is detected
 
 /// @}
 
@@ -78,10 +78,10 @@ constexpr float kStrongerBias = 3.0f;  ///< Bias when it's been a long time sinc
 
 /// @name LED Fade
 /// @{
-constexpr uint8_t kLedFadeIncrement = 5;      ///< How much to change brightness each step
-constexpr uint32_t kLedFadeInterval = 30;     ///< Time (ms) between fade steps
-constexpr uint8_t kLedMinBrightness = 64;     ///< Minimum LED brightness (0-255)
-constexpr uint8_t kLedMaxBrightness = 128;    ///< Maximum LED brightness (0-255)
+constexpr uint8_t kLedFadeIncrement = 5;    ///< How much to change brightness each step
+constexpr uint32_t kLedFadeInterval = 30;   ///< Time (ms) between fade steps
+constexpr uint8_t kLedMinBrightness = 64;   ///< Minimum LED brightness (0-255)
+constexpr uint8_t kLedMaxBrightness = 128;  ///< Maximum LED brightness (0-255)
 /// @}
 }  // namespace AnimationConstants
 
@@ -94,9 +94,9 @@ constexpr uint8_t kLedMaxBrightness = 128;    ///< Maximum LED brightness (0-255
  */
 enum class MotorDirection : int8_t
 {
-    Stop = 0,    ///< Motor is not moving
-    Right = 1,   ///< Motor is rotating to the right
-    Left = -1    ///< Motor is rotating to the left
+    Stop = 0,   ///< Motor is not moving
+    Right = 1,  ///< Motor is rotating to the right
+    Left = -1   ///< Motor is rotating to the left
 };
 
 /**
@@ -323,20 +323,20 @@ protected:
     /// @name Motor Control State
     /// @{
     MotorDirection m_motorDirection =
-        MotorDirection::Stop;               ///< Current direction of motor movement
-    unsigned long m_lastLeftTurnTime = 0;   ///< Timestamp of last left turn
-    unsigned long m_lastRightTurnTime = 0;  ///< Timestamp of last right turn
-    unsigned long m_randomRotateTimer = 0;  ///< Timer for random rotation timing
+        MotorDirection::Stop;                  ///< Current direction of motor movement
+    unsigned long m_lastLeftTurnTime = 0;      ///< Timestamp of last left turn
+    unsigned long m_lastRightTurnTime = 0;     ///< Timestamp of last right turn
+    unsigned long m_randomRotateTimer = 0;     ///< Timer for random rotation timing
     unsigned long m_randomDirectionTimer = 0;  ///< Timer for random direction timing
-    uint32_t m_lastMovementEndTime = 0;    ///< When the last movement ended
-    bool m_isInMovementCycle = false;      ///< Whether we're currently in a movement cycle
+    uint32_t m_lastMovementEndTime = 0;        ///< When the last movement ended
+    bool m_isInMovementCycle = false;          ///< Whether we're currently in a movement cycle
     /// @}
 
     /// @name LED Fade State
     /// @{
-    uint8_t m_currentLedBrightness = 0;           ///< Current LED brightness (0-255)
-    bool m_ledFadeDirection = true;               ///< true = fading up, false = fading down
-    unsigned long m_lastFadeTime = 0;             ///< Last time the LED was faded
+    uint8_t m_currentLedBrightness = 0;  ///< Current LED brightness (0-255)
+    bool m_ledFadeDirection = true;      ///< true = fading up, false = fading down
+    unsigned long m_lastFadeTime = 0;    ///< Last time the LED was faded
     /// @}
 
     /// @name Sensor States

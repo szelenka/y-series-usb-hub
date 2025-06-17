@@ -6,7 +6,7 @@
  *
  * @details
  * This file defines the AudioPlayer class which manages WAV audio file playback
- * using the ROMBackgroundAudioWAV library. It provides an interface for playing
+ * using the TimerAudio library. It provides an interface for playing
  * sounds by index or randomly from a predefined set of audio files.
  *
  * The AudioPlayer is responsible for:
@@ -23,8 +23,7 @@
 #include <Arduino.h>
 
 // Project includes
-#include <BackgroundAudioWAV.h>
-#include <PWMAudio.h>
+#include <TimerAudio.h>
 
 // Project-local includes
 #include <Logger.h>
@@ -48,7 +47,7 @@ enum class WAVState
  *
  * @details
  * The AudioPlayer class manages the playback of WAV audio files using the
- * ROMBackgroundAudioWAV library. It provides a simple interface for playing
+ * TimerAudio library. It provides a simple interface for playing
  * sounds by index or randomly selecting from the available sound bank.
  *
  * The class handles all audio playback state management and provides
@@ -63,11 +62,11 @@ public:
     /**
      * @brief Construct a new AudioPlayer instance
      *
-     * @param[in] player Pointer to the ROMBackgroundAudioWAV instance to use for playback
+     * @param[in] player Pointer to the TimerAudio instance to use for playback
      * @note The provided player instance must remain valid for the lifetime of this AudioPlayer
      * @warning Passing a null player will result in a non-functional AudioPlayer instance
      */
-    explicit AudioPlayer(ROMBackgroundAudioWAV* player);
+    explicit AudioPlayer(TimerAudio* player);
 
     /**
      * @brief Virtual destructor for proper cleanup in derived classes
@@ -177,7 +176,7 @@ protected:
 private:
     /// @name Hardware Interface
     /// @{
-    ROMBackgroundAudioWAV* m_player;  ///< Underlying audio player instance
+    TimerAudio* m_player;  ///< Underlying audio player instance
     /// @}
 
     /// @name Playback State

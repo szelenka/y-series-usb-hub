@@ -195,7 +195,8 @@ void test_set_rotation_direction_with_sensor_trip()
 
     // The direction should now be reversed (not Right)
     TEST_ASSERT_EQUAL(MotorDirection::Left, i.getMotorDirection());
-    TEST_ASSERT_EQUAL(currentTime + AnimationConstants::kMinDirectionTime, i.getRandomRotateTimer());
+    TEST_ASSERT_EQUAL(currentTime + AnimationConstants::kMinDirectionTime,
+                      i.getRandomRotateTimer());
 
     // Set sensor inputs: PIR HIGH, SensorLeft LOW
     i.setInputPIRSensor(HIGH);
@@ -207,7 +208,8 @@ void test_set_rotation_direction_with_sensor_trip()
 
     // The direction should now be reversed (not Left)
     TEST_ASSERT_EQUAL(MotorDirection::Right, i.getMotorDirection());
-    TEST_ASSERT_EQUAL(currentTime + AnimationConstants::kMinDirectionTime, i.getRandomRotateTimer());
+    TEST_ASSERT_EQUAL(currentTime + AnimationConstants::kMinDirectionTime,
+                      i.getRandomRotateTimer());
 }
 
 void test_perform_rotate_pir_not_triggered_no_timeout()
@@ -363,7 +365,9 @@ void test_rotate()
         animation.rotate(AnimationConstants::kMaxMotorSpeed, MotorDirection::Right);
 
         // Verify motor was set to right
-        Verify(Method(ArduinoFake(), analogWrite).Using(pins.neckMotorIn2, AnimationConstants::kMaxMotorSpeed)).Once();
+        Verify(Method(ArduinoFake(), analogWrite)
+                   .Using(pins.neckMotorIn2, AnimationConstants::kMaxMotorSpeed))
+            .Once();
         Verify(Method(ArduinoFake(), analogWrite).Using(pins.neckMotorIn1, 0)).Once();
     }
 
@@ -376,7 +380,9 @@ void test_rotate()
         animation.rotate(AnimationConstants::kMaxMotorSpeed, MotorDirection::Left);
 
         // Verify motor was set to left
-        Verify(Method(ArduinoFake(), analogWrite).Using(pins.neckMotorIn1, AnimationConstants::kMaxMotorSpeed)).Once();
+        Verify(Method(ArduinoFake(), analogWrite)
+                   .Using(pins.neckMotorIn1, AnimationConstants::kMaxMotorSpeed))
+            .Once();
         Verify(Method(ArduinoFake(), analogWrite).Using(pins.neckMotorIn2, 0)).Once();
     }
 
@@ -541,7 +547,8 @@ void test_set_rotation_direction_bias()
         animation.setRotationDirection();
 
         // Verify timer was reset
-        TEST_ASSERT_EQUAL(baseTime + AnimationConstants::kMinDirectionTime, animation.getRandomRotateTimer());
+        TEST_ASSERT_EQUAL(baseTime + AnimationConstants::kMinDirectionTime,
+                          animation.getRandomRotateTimer());
     }
 }
 

@@ -19,9 +19,7 @@
 #include "../Logger/Logger.h"
 
 Animation::Animation(EyeAnimation* eye, AudioPlayer* audio, const AnimationPins& pins)
-    : m_eyeAnimation(eye),
-      m_audioPlayer(audio),
-      m_pins(pins)
+    : m_eyeAnimation(eye), m_audioPlayer(audio), m_pins(pins)
 {
     m_currentTime = 0;
     m_randomRotateTimer = m_currentTime;
@@ -112,19 +110,23 @@ void Animation::setRotationDirection()
     // Check limit sensors first - these take highest priority
     if (m_inputSensorLeft == LOW)
     {
-            // Normal case: moving left and hit left sensor, reverse to right
-            m_motorDirection = MotorDirection::Right;
-            m_randomDirectionTimer = m_currentTime + AnimationConstants::kMinDirectionTime;  // Give enough time to move away from the limit
-            m_lastRightTurnTime = m_currentTime;
-            return;
+        // Normal case: moving left and hit left sensor, reverse to right
+        m_motorDirection = MotorDirection::Right;
+        m_randomDirectionTimer =
+            m_currentTime +
+            AnimationConstants::kMinDirectionTime;  // Give enough time to move away from the limit
+        m_lastRightTurnTime = m_currentTime;
+        return;
     }
     else if (m_inputSensorRight == LOW)
     {
-            // Normal case: moving right and hit right sensor, reverse to left
-            m_motorDirection = MotorDirection::Left;
-            m_randomDirectionTimer = m_currentTime + AnimationConstants::kMinDirectionTime;  // Give enough time to move away from the limit
-            m_lastLeftTurnTime = m_currentTime;
-            return;
+        // Normal case: moving right and hit right sensor, reverse to left
+        m_motorDirection = MotorDirection::Left;
+        m_randomDirectionTimer =
+            m_currentTime +
+            AnimationConstants::kMinDirectionTime;  // Give enough time to move away from the limit
+        m_lastLeftTurnTime = m_currentTime;
+        return;
     }
     if (!m_isInMovementCycle)
     {
@@ -189,8 +191,9 @@ void Animation::setRotationDirection()
 
         // Set timer for next direction change
         m_randomDirectionTimer = m_currentTime + random(AnimationConstants::kMinRotateInterval,
-                                                     AnimationConstants::kMaxRotateInterval);
-        Log.debug("[Animation] Direction timer set for %dms", m_randomDirectionTimer - m_currentTime);
+                                                        AnimationConstants::kMaxRotateInterval);
+        Log.debug("[Animation] Direction timer set for %dms",
+                  m_randomDirectionTimer - m_currentTime);
     }
 
     // Check if it's time to change direction
@@ -250,7 +253,7 @@ void Animation::handlePirTriggered()
 {
     if (m_currentTime - m_lastPIRTimer < 1000)
     {
-        return; // Debounce PIR
+        return;  // Debounce PIR
     }
 
     // Check for rising edge of PIR sensor (LOW -> HIGH)
@@ -268,7 +271,8 @@ void Animation::handlePirTriggered()
         // Reset timers for fresh movement
         m_randomDirectionTimer = 0;
         m_isInMovementCycle = true;
-        m_randomRotateTimer = m_currentTime + random(AnimationConstants::kMinMovementDuration, AnimationConstants::kMaxMovementDuration);
+        m_randomRotateTimer = m_currentTime + random(AnimationConstants::kMinMovementDuration,
+                                                     AnimationConstants::kMaxMovementDuration);
     }
 
     // Update PIR state and reset the inactivity timer
@@ -281,7 +285,8 @@ void Animation::handlePirTriggered()
         // End the movement cycle
         m_isInMovementCycle = false;
         // set timer until we evaluate if we should move again
-        m_randomRotateTimer = m_currentTime + random(AnimationConstants::kMinMovementInterval, AnimationConstants::kMaxMovementInterval);
+        m_randomRotateTimer = m_currentTime + random(AnimationConstants::kMinMovementInterval,
+                                                     AnimationConstants::kMaxMovementInterval);
         stop();
         return;
     }
@@ -290,13 +295,15 @@ void Animation::handlePirTriggered()
         // Wait for the movement cycle to start
         return;
     }
-    else if (!m_isInMovementCycle && m_currentTime - m_randomRotateTimer > AnimationConstants::kMinMovementInterval)
+    else if (!m_isInMovementCycle &&
+             m_currentTime - m_randomRotateTimer > AnimationConstants::kMinMovementInterval)
     {
         Log.info("Movement interval exceeded, starting rotation");
         // Start a new movement cycle
         m_isInMovementCycle = true;
         // set timer for how long to evaluate if we should stop moving
-        m_randomRotateTimer = m_currentTime + random(AnimationConstants::kMinMovementDuration, AnimationConstants::kMaxMovementDuration);
+        m_randomRotateTimer = m_currentTime + random(AnimationConstants::kMinMovementDuration,
+                                                     AnimationConstants::kMaxMovementDuration);
     }
 
     // Calculate how long we've been moving in the current direction
@@ -396,20 +403,22 @@ void Animation::updateSound()
 void Animation::updateLedFade()
 {
     // Only update if enough time has passed since last fade step
-    if (m_currentTime - m_lastFadeTime < AnimationConstants::kLedFadeInterval) {
+    if (m_currentTime - m_lastFadeTime < AnimationConstants::kLedFadeInterval)
+    {
         return;
     }
-    
+
     m_lastFadeTime = m_currentTime;
-    
+
     // Update brightness based on fade direction
     if (m_ledFadeDirection)
     {
         // Fading up
-        if (m_currentLedBrightness < AnimationConstants::kLedMaxBrightness) 
+        if (m_currentLedBrightness < AnimationConstants::kLedMaxBrightness)
         {
-            m_currentLedBrightness = fmin(AnimationConstants::kLedMaxBrightness, 
-                                       m_currentLedBrightness + AnimationConstants::kLedFadeIncrement);
+            m_currentLedBrightness =
+                fmin(AnimationConstants::kLedMaxBrightness,
+                     m_currentLedBrightness + AnimationConstants::kLedFadeIncrement);
         }
         if (m_currentLedBrightness == AnimationConstants::kLedMaxBrightness)
         {
@@ -421,15 +430,16 @@ void Animation::updateLedFade()
         // Fading down
         if (m_currentLedBrightness > AnimationConstants::kLedMinBrightness)
         {
-            m_currentLedBrightness = fmax(AnimationConstants::kLedMinBrightness, 
-                                       m_currentLedBrightness - AnimationConstants::kLedFadeIncrement);
+            m_currentLedBrightness =
+                fmax(AnimationConstants::kLedMinBrightness,
+                     m_currentLedBrightness - AnimationConstants::kLedFadeIncrement);
         }
         if (m_currentLedBrightness == AnimationConstants::kLedMinBrightness)
         {
             m_ledFadeDirection = true;  // Switch direction
         }
     }
-    
+
     // Apply the brightness
     analogWrite(m_pins.domeLedGreen, m_currentLedBrightness);
 }

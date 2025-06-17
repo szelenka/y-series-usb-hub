@@ -348,31 +348,41 @@ void EyeAnimation::blink(unsigned long duration)
 void EyeAnimation::sequenceBlink()
 {
     // If we're not currently blinking
-    if (!m_isBlinking) {
+    if (!m_isBlinking)
+    {
         // If we have more blinks in the sequence, start the next one
-        if (m_blinkCount > 0) {
+        if (m_blinkCount > 0)
+        {
             // Small delay between blinks in a sequence (100-200ms)
             static unsigned long lastBlinkEnd = 0;
-            if (m_currentTime - lastBlinkEnd >= 150) {
+            if (m_currentTime - lastBlinkEnd >= 150)
+            {
                 uint8_t duration = random(100, 400);
                 blink(duration);
                 lastBlinkEnd = m_currentTime + duration;  // Update when this blink will end
             }
-        } 
+        }
         // If no more blinks in sequence, schedule next sequence
-        else if (m_nextBlinkDelay == 0) {
+        else if (m_nextBlinkDelay == 0)
+        {
             // Set a random delay before next blink sequence (2-8 seconds)
             m_nextBlinkDelay = m_currentTime + random(2000, 8000);
         }
         // If it's time for a new blink sequence
-        else if (m_currentTime >= m_nextBlinkDelay) {
+        else if (m_currentTime >= m_nextBlinkDelay)
+        {
             // 70% chance of single blink, 25% double blink, 5% triple blink
             uint8_t r = random(100);
-            if (r < 70) {
+            if (r < 70)
+            {
                 m_blinkCount = 1;
-            } else if (r < 95) {
+            }
+            else if (r < 95)
+            {
                 m_blinkCount = 2;
-            } else {
+            }
+            else
+            {
                 m_blinkCount = 3;
             }
             m_nextBlinkDelay = 0;  // Reset for next sequence
@@ -511,9 +521,9 @@ void EyeAnimation::rotateActiveColor()
     // Only change color if enough time has passed
     if (m_currentTime - m_lastColorChangeTime >= EyeAnimationConstants::COLOR_CHANGE_DELAY)
     {
-        m_activeColor = (m_activeColor == EyeAnimationConstants::COLOR_BLUE) 
-            ? EyeAnimationConstants::COLOR_GREEN 
-            : EyeAnimationConstants::COLOR_BLUE;
+        m_activeColor = (m_activeColor == EyeAnimationConstants::COLOR_BLUE)
+                            ? EyeAnimationConstants::COLOR_GREEN
+                            : EyeAnimationConstants::COLOR_BLUE;
         m_lastColorChangeTime = m_currentTime;
     }
 }

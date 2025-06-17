@@ -33,19 +33,18 @@
  */
 namespace EyeAnimationConstants
 {
-    /// @name Color Definitions
-    /// @{
-    constexpr uint32_t COLOR_BLACK = 0x000000;    ///< Black (off)
-    constexpr uint32_t COLOR_BLUE = 0x21DDF5;    ///< Blue eye
-    constexpr uint32_t COLOR_GREEN = 0x65F9B4;      ///< Green eye
-    /// @}
+/// @name Color Definitions
+/// @{
+constexpr uint32_t COLOR_BLACK = 0x000000;  ///< Black (off)
+constexpr uint32_t COLOR_BLUE = 0x21DDF5;   ///< Blue eye
+constexpr uint32_t COLOR_GREEN = 0x65F9B4;  ///< Green eye
+/// @}
 
-    constexpr uint16_t NUM_PIXELS = 16;                    // Number of LEDs in the eye ring
-    constexpr uint8_t DEFAULT_BRIGHTNESS = 255;            // Maximum brightness
-    constexpr unsigned long DEFAULT_BLINK_DURATION = 300;  // ms for a complete blink
-    constexpr unsigned long COLOR_CHANGE_DELAY = 1000;      // ms between color changes
-};
-
+constexpr uint16_t NUM_PIXELS = 16;                    // Number of LEDs in the eye ring
+constexpr uint8_t DEFAULT_BRIGHTNESS = 255;            // Maximum brightness
+constexpr unsigned long DEFAULT_BLINK_DURATION = 300;  // ms for a complete blink
+constexpr unsigned long COLOR_CHANGE_DELAY = 1000;     // ms between color changes
+};  // namespace EyeAnimationConstants
 
 /**
  * @brief Controls eye animations using NeoPixel LEDs
@@ -212,23 +211,23 @@ private:
     // Animation state
     uint16_t m_rainbowIndex;       ///< Current position in rainbow animation
     unsigned long m_rainbowTimer;  ///< Timer for rainbow animation updates
-    uint32_t m_activeColor;       ///< Active eye color (0x00RRGGBB)
+    uint32_t m_activeColor;        ///< Active eye color (0x00RRGGBB)
     uint8_t m_brightness;          ///< Global brightness (0-255)
     unsigned long m_currentTime;   ///< Current time in milliseconds
 
     // Blink state
-    bool m_isBlinking;               ///< True if a blink is in progress
-    unsigned long m_blinkStartTime;  ///< When the current blink started
-    unsigned long m_blinkDuration;   ///< Duration of the current blink
-    unsigned long m_blinkEndTime;    ///< When the current blink sequence ends
-    uint8_t m_blinkPhase;            ///< 0=not blinking, 1=closing, 2=opening
-    float m_blinkProgress;           ///< 0.0 to 1.0 for current blink phase
-    float m_pixelProgress[16];       ///< Progress for each pixel (0.0 to 1.0)
-    uint8_t m_topPixel1;             ///< First top pixel index
-    uint8_t m_topPixel2;             ///< Second top pixel index
-    uint8_t m_pixelOrder[16];        ///< Animation order for pixels during blink
-    unsigned long m_nextBlinkDelay;  ///< Delay until next blink in sequence
-    uint8_t m_blinkCount;            ///< Number of blinks in current sequence
+    bool m_isBlinking;                    ///< True if a blink is in progress
+    unsigned long m_blinkStartTime;       ///< When the current blink started
+    unsigned long m_blinkDuration;        ///< Duration of the current blink
+    unsigned long m_blinkEndTime;         ///< When the current blink sequence ends
+    uint8_t m_blinkPhase;                 ///< 0=not blinking, 1=closing, 2=opening
+    float m_blinkProgress;                ///< 0.0 to 1.0 for current blink phase
+    float m_pixelProgress[16];            ///< Progress for each pixel (0.0 to 1.0)
+    uint8_t m_topPixel1;                  ///< First top pixel index
+    uint8_t m_topPixel2;                  ///< Second top pixel index
+    uint8_t m_pixelOrder[16];             ///< Animation order for pixels during blink
+    unsigned long m_nextBlinkDelay;       ///< Delay until next blink in sequence
+    uint8_t m_blinkCount;                 ///< Number of blinks in current sequence
     unsigned long m_lastColorChangeTime;  ///< Time of last color change
 
     /// @}
