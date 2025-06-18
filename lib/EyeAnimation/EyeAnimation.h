@@ -41,7 +41,7 @@ constexpr uint32_t COLOR_GREEN = 0x0BBD39;  ///< Green eye
 /// @}
 
 constexpr uint16_t NUM_PIXELS_IN_RING = 16;            // Number of LEDs in the eye ring
-constexpr uint8_t DEFAULT_BRIGHTNESS = 64;            // Maximum brightness
+constexpr uint8_t DEFAULT_BRIGHTNESS = 64;             // Maximum brightness
 constexpr unsigned long DEFAULT_BLINK_DURATION = 300;  // ms for a complete blink
 constexpr unsigned long COLOR_CHANGE_DELAY = 1000;     // ms between color changes
 };  // namespace EyeAnimationConstants
@@ -186,6 +186,11 @@ protected:
                                              uint8_t brightness = 255);
 
     /**
+     * @brief Update the display
+     */
+    virtual void show();
+
+    /**
      * @brief Generate a color from a position on the color wheel
      *
      * @param[in] pos Position on the color wheel (0-255)
@@ -214,6 +219,7 @@ private:
     uint32_t m_activeColor;        ///< Active eye color (0x00RRGGBB)
     uint8_t m_brightness;          ///< Global brightness (0-255)
     unsigned long m_currentTime;   ///< Current time in milliseconds
+    bool m_isSleeping;             ///< True if the eye is sleeping
 
     // Blink state
     bool m_isBlinking;                    ///< True if a blink is in progress

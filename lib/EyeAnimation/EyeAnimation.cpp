@@ -34,7 +34,8 @@ EyeAnimation::EyeAnimation(Adafruit_NeoPixel* pixels)
       m_topPixel2(EyeAnimationConstants::NUM_PIXELS_IN_RING - 1),
       m_nextBlinkDelay(0),
       m_blinkCount(0),
-      m_lastColorChangeTime(0)
+      m_lastColorChangeTime(0),
+      m_isSleeping(false)
 {
     // Initialize pixel progress and order arrays
     for (uint16_t i = 0; i < EyeAnimationConstants::NUM_PIXELS_IN_RING; i++)
@@ -58,7 +59,10 @@ EyeAnimation::EyeAnimation(Adafruit_NeoPixel* pixels)
 void EyeAnimation::updateRainbowColor()
 {
     if (!m_pixels)
+    {
         return;
+    }
+    m_isSleeping = false;
 
     m_rainbowTimer = m_currentTime;
 
@@ -70,9 +74,6 @@ void EyeAnimation::updateRainbowColor()
         setPixelColorWithBrightness(i, wheel(offset), m_brightness);
     }
 
-    // Update the display
-    m_pixels->show();
-
     // Move to the next color in the rainbow
     m_rainbowIndex = (m_rainbowIndex + 1) % 256;
 
@@ -80,7 +81,7 @@ void EyeAnimation::updateRainbowColor()
     updateBlink();
 
     // Final update to show any blink changes
-    m_pixels->show();
+    show();
 }
 
 /**
@@ -91,7 +92,10 @@ void EyeAnimation::updateRainbowColor()
 void EyeAnimation::updateActiveColor()
 {
     if (!m_pixels)
+    {
         return;
+    }
+    m_isSleeping = false;
 
     // Set all pixels to the active color
     setAllPixelsColor(m_activeColor);
@@ -100,7 +104,7 @@ void EyeAnimation::updateActiveColor()
     updateBlink();
 
     // Update the display
-    m_pixels->show();
+    show();
 }
 
 /**
@@ -108,8 +112,17 @@ void EyeAnimation::updateActiveColor()
  */
 void EyeAnimation::sleep()
 {
-    setAllPixelsColor(0);
-    m_pixels->show();
+    if (!m_pixels || m_isSleeping)
+    {
+        return;
+    }
+
+    for (uint16_t i = 0; i < m_pixels->numPixels(); i++)
+    {
+        m_pixels->setPixelColor(i, 0);
+    }
+    show();
+    m_isSleeping = true;
 }
 
 /**
@@ -120,7 +133,9 @@ void EyeAnimation::sleep()
 void EyeAnimation::setAllPixelsColor(uint32_t color)
 {
     if (!m_pixels)
+    {
         return;
+    }
 
     for (uint16_t i = 0; i < EyeAnimationConstants::NUM_PIXELS_IN_RING; i++)
     {
@@ -131,11 +146,13 @@ void EyeAnimation::setAllPixelsColor(uint32_t color)
     // alter the colors to provide a more intentional deviation for the center of the eye
     if (EyeAnimationConstants::COLOR_BLUE == color)
     {
-        setPixelColorWithBrightness(EyeAnimationConstants::NUM_PIXELS_IN_RING, 0x0000FF, m_brightness);
+        setPixelColorWithBrightness(EyeAnimationConstants::NUM_PIXELS_IN_RING, 0x0000FF,
+                                    m_brightness);
     }
     else
     {
-        setPixelColorWithBrightness(EyeAnimationConstants::NUM_PIXELS_IN_RING, 0x00FF00, m_brightness);
+        setPixelColorWithBrightness(EyeAnimationConstants::NUM_PIXELS_IN_RING, 0x00FF00,
+                                    m_brightness);
     }
 }
 
@@ -176,6 +193,18 @@ void EyeAnimation::setPixelColorWithBrightness(uint16_t pixel, uint32_t color, u
     uint32_t newColor = (static_cast<uint32_t>(r) << 16) | (static_cast<uint32_t>(g) << 8) | b;
 
     m_pixels->setPixelColor(pixel, newColor);
+}
+
+/**
+ * @brief Update the display
+ */
+void EyeAnimation::show()
+{
+    if (!m_pixels || m_isSleeping)
+    {
+        return;
+    }
+    m_pixels->show();
 }
 
 /**
