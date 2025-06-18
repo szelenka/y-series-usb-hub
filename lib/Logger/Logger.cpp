@@ -57,7 +57,7 @@ Logger Log(&Serial);
  * @param[in] prefix Optional prefix for all log messages
  */
 Logger::Logger(Stream* serial, const char* prefix)
-    : m_serial(serial), m_prefix(prefix), m_logLevel(LogLevel::INFO)
+    : m_serial(serial), m_prefix(prefix), m_logLevel(LogLevel::NONE)
 {
     // No initialization needed beyond member initializers
 }
