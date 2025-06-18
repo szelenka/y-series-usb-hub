@@ -26,15 +26,12 @@
 #define PIN_AUDIO_OUT_POS 29    // A3 --> AMP A+
 
 #define NUMPIXELS 17
-#define NEOPIXEL_BRIGHTNESS 50
-#define SAMPLE_RATE 22050
-#define SAMPLE_INTERVAL 1000000 / SAMPLE_RATE
-#define SAMPLE_BITRATE 16
 
 // Create AnimationPins with custom pin values
 AnimationPins customPins(PIN_EYE_NEOPIXEL, PIN_NECK_MOTOR_IN1, PIN_NECK_MOTOR_IN2, PIN_SENSOR_LEFT,
                          PIN_SENSOR_RIGHT, PIN_PIR_SENSOR, PIN_BUTTON_RECTANGLE, PIN_BUTTON_CIRCLE,
-                         PIN_AUDIO_OUT_POS, PIN_AUDIO_OUT_NEG, PIN_DOME_LED_GREEN, PIN_DOME_LED_BLUE);
+                         PIN_AUDIO_OUT_POS, PIN_AUDIO_OUT_NEG, PIN_DOME_LED_GREEN,
+                         PIN_DOME_LED_BLUE);
 
 Adafruit_NeoPixel neoPixel(NUMPIXELS, customPins.eyeNeck, NEO_GRB + NEO_KHZ800);
 EyeAnimation eyeAnimation(&neoPixel);
@@ -60,9 +57,6 @@ void setup()
     neoPixel.begin();
     neoPixel.clear();
     neoPixel.show();
-    neoPixel.setBrightness(NEOPIXEL_BRIGHTNESS);
-    eyeAnimation.setActiveColor(EyeAnimationConstants::COLOR_BLUE);
-    eyeAnimation.setBrightness(NEOPIXEL_BRIGHTNESS);
     eyeAnimation.setTopPixels(5, 4);
     eyeAnimation.setCurrentTime(millis());
     eyeAnimation.blink(300);
@@ -84,7 +78,10 @@ void setup()
 
     // Audio Setup
     pinMode(PIN_AMP_SHDWM, OUTPUT);
+    pinMode(PIN_AUDIO_OUT_POS, OUTPUT);
+    pinMode(PIN_AUDIO_OUT_NEG, OUTPUT);
     digitalWrite(PIN_AMP_SHDWM, HIGH);
+    analogWrite(customPins.audioOutPos, 255);
     timerAudio.begin();
     audioPlayer.play(4);
 }
@@ -93,14 +90,7 @@ void loop()
     // Read sensor inputs
     AnimationInputs inputs = readInputs(customPins);
 
-    // Print sensor states
-    // Log.info("Sensor States:");
-    // Log.info("  Left Hall: %d", inputs.sensorLeft);
-    // Log.info("  Right Hall: %d", inputs.sensorRight);
-    // Log.info("  PIR: %d", inputs.pirSensor);
-    // Log.info("  Rectangle Button: %d", inputs.buttonRectangle);
-    // Log.info("  Circle Button: %d", inputs.buttonCircle);
-
+    Log.debug("Sensors: L%d R%d P%d B%d C%d", inputs.sensorLeft, inputs.sensorRight, inputs.pirSensor, inputs.buttonRectangle, inputs.buttonCircle);
 
     // Update animation
     animation.update(inputs);

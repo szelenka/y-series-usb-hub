@@ -11,11 +11,13 @@
  */
 
 #include "TimerAudio.h"
+#include <algorithm>  // For std::min
 #ifdef ARDUINO_ARCH_RP2040
 #include <hardware/timer.h>
 #include <hardware/clocks.h>
 #endif
 
+#include <iostream>
 // Static instance for timer callback
 TimerAudio* TimerAudio::s_instance = nullptr;
 
@@ -34,8 +36,11 @@ TimerAudio::TimerAudio(uint8_t pinPos, uint8_t pinNeg, uint32_t sampleRate)
       m_currentWavSize(0),
       m_currentPosition(0),
       m_isPlaying(false),
-      m_skipWavHeader(true),
+      m_skipWavHeader(true)
+#ifdef ARDUINO_ARCH_RP2040
+      ,
       m_timer()
+#endif
 {
     s_instance = this;
 }
@@ -99,22 +104,26 @@ void TimerAudio::setupPWM()
 void TimerAudio::setupTimer()
 {
 #ifdef ARDUINO_ARCH_RP2040
+Log.info("Setting up timer with sample rate %lu", m_sampleRate);
+
     // Calculate timer interval for sample rate
     // Timer runs at 1MHz, so interval = 1,000,000 / sample_rate
-    uint32_t timerInterval = 1000000 / m_sampleRate;
+    int32_t timerInterval = static_cast<int32_t>(1000000 / m_sampleRate);
 
     // Add repeating timer
-    add_repeating_timer_us(
+    bool result = add_repeating_timer_us(
         -timerInterval,
         [](repeating_timer_t* rt) -> bool
-        {
-            if (TimerAudio::s_instance)
-            {
-                TimerAudio::s_instance->updateSample();
-            }
-            return true;  // Continue repeating
-        },
-        NULL, &m_timer);
+    {
+        if (TimerAudio::s_instance) {
+            s_instance->updateSample();
+        }
+        return true;
+    },
+    NULL, 
+    &m_timer);
+    Log.info("Timer setup result: %d %d", result, timerInterval);
+
 #endif
 }
 
@@ -134,36 +143,47 @@ void TimerAudio::playWAV(uint8_t wavIndex)
     m_currentWavData = getWavData(wavIndex);
     m_currentWavSize = getWavSize(wavIndex);
 
-    if (m_currentWavData && m_currentWavSize > 0)
-    {
-        // Skip WAV header if present
-        if (m_skipWavHeader && m_currentWavSize > TimerAudioConstants::WAV_HEADER_SIZE)
-        {
-            // Look for "data" chunk in first 100 bytes
-            for (size_t i = 0; i < min(100ul, m_currentWavSize - 4); i++)
-            {
-                if (pgm_read_byte((const void*)&m_currentWavData[i]) == 'd' &&
-                    pgm_read_byte((const void*)&m_currentWavData[i + 1]) == 'a' &&
-                    pgm_read_byte((const void*)&m_currentWavData[i + 2]) == 't' &&
-                    pgm_read_byte((const void*)&m_currentWavData[i + 3]) == 'a')
-                {
-                    m_currentPosition = i + 8;  // Skip "data" + size bytes
-                    break;
-                }
-            }
-            if (m_currentPosition == 0)
-            {
-                m_currentPosition =
-                    TimerAudioConstants::WAV_HEADER_SIZE;  // Fallback to standard header size
-            }
-        }
-        else
-        {
-            m_currentPosition = 0;
-        }
+    Log.info("Starting playback: isPlaying=%d, wavSize=%u, wavData=%p", 
+        m_isPlaying ? 1 : 0, m_currentWavSize, m_currentWavData);
+    
+    // Initialize playback
+    m_currentPosition = 0;
+    m_isPlaying = false;
 
-        m_isPlaying = true;
+    // CRITICAL: Verify data exists before attempting to play
+    if (!m_currentWavData || m_currentWavSize == 0) {
+        Log.error("Invalid WAV data or size for index %d", wavIndex);
+        return;  // Don't proceed with invalid data
     }
+    
+
+    // Skip WAV header if present
+    if (m_skipWavHeader && m_currentWavSize > TimerAudioConstants::WAV_HEADER_SIZE)
+    {
+        // Look for "data" chunk in first 100 bytes
+        for (size_t i = 0; i < std::min(static_cast<size_t>(100), m_currentWavSize - 4); i++)
+        {
+            if (pgm_read_byte((const void*)&m_currentWavData[i]) == 'd' &&
+                pgm_read_byte((const void*)&m_currentWavData[i + 1]) == 'a' &&
+                pgm_read_byte((const void*)&m_currentWavData[i + 2]) == 't' &&
+                pgm_read_byte((const void*)&m_currentWavData[i + 3]) == 'a')
+            {
+                m_currentPosition = i + 8;  // Skip "data" + size bytes
+                break;
+            }
+        }
+        if (m_currentPosition == 0)
+        {
+            m_currentPosition =
+                TimerAudioConstants::WAV_HEADER_SIZE;  // Fallback to standard header size
+        }
+    }
+    else
+    {
+        m_currentPosition = 0;
+    }
+
+    m_isPlaying = true;
 }
 
 /**
@@ -200,17 +220,26 @@ void TimerAudio::updateSample()
         return;
     }
 
+    // Add bounds safety check
+    if (m_currentPosition < 0 || m_currentPosition >= m_currentWavSize) {
+        stop();
+        return;
+    }
+
     // Read next audio sample from PROGMEM
     uint8_t sample = pgm_read_byte((const void*)&m_currentWavData[m_currentPosition]);
     m_currentPosition++;
-
 #ifdef ARDUINO_ARCH_RP2040
     // Convert 8-bit WAV sample to differential PWM
     // WAV data is 0x80 centered (128), so we use it directly
 
     // For better audio quality, use differential signaling:
-    // A+ gets the sample value
-    // A- gets the inverted sample value
+    // This is called "bridge-tied load" or "BTL" output.
+    // It works by driving the same signal onto two pins, but one is inverted.
+    // This helps to:
+    //  1. Increase the total output power
+    //  2. Reduce electromagnetic interference (EMI)
+    //  3. Improve the signal-to-noise ratio (SNR)
     pwm_set_gpio_level(m_pinAudioPos, sample);
     pwm_set_gpio_level(m_pinAudioNeg, 255 - sample);
 #endif

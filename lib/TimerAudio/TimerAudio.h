@@ -29,6 +29,7 @@
 #endif
 
 // Project includes
+#include <Logger.h>
 #include <WavData.h>
 
 /**
@@ -139,11 +140,11 @@ private:
     uint8_t m_pinAudioPos;  ///< Positive PWM output pin (A+)
     uint8_t m_pinAudioNeg;  ///< Negative PWM output pin (A-)
 #ifdef ARDUINO_ARCH_RP2040
-    uint m_pwmSlicePos;  ///< PWM slice for positive output
-    uint m_pwmSliceNeg;  ///< PWM slice for negative output
-#endif
-    uint32_t m_sampleRate;      ///< Sample rate in Hz
+    uint m_pwmSlicePos;         ///< PWM slice for positive output
+    uint m_pwmSliceNeg;         ///< PWM slice for negative output
     repeating_timer_t m_timer;  ///< Hardware timer for sample timing
+#endif
+    uint32_t m_sampleRate;  ///< Sample rate in Hz
     /// @}
 
     /// @name Audio State
