@@ -13,6 +13,7 @@
 
 // System includes
 #include <Arduino.h>
+#include <algorithm>
 
 // Project includes
 #include "Animation.h"
@@ -417,8 +418,8 @@ void Animation::updateLedFade()
         if (m_currentLedBrightness < AnimationConstants::kLedMaxBrightness)
         {
             m_currentLedBrightness =
-                fmin(AnimationConstants::kLedMaxBrightness,
-                     m_currentLedBrightness + AnimationConstants::kLedFadeIncrement);
+                std::min(AnimationConstants::kLedMaxBrightness,
+                    static_cast<uint8_t>(m_currentLedBrightness + AnimationConstants::kLedFadeIncrement));
         }
         if (m_currentLedBrightness == AnimationConstants::kLedMaxBrightness)
         {
@@ -431,8 +432,8 @@ void Animation::updateLedFade()
         if (m_currentLedBrightness > AnimationConstants::kLedMinBrightness)
         {
             m_currentLedBrightness =
-                fmax(AnimationConstants::kLedMinBrightness,
-                     m_currentLedBrightness - AnimationConstants::kLedFadeIncrement);
+                std::max(AnimationConstants::kLedMinBrightness,
+                     static_cast<uint8_t>(m_currentLedBrightness - AnimationConstants::kLedFadeIncrement));
         }
         if (m_currentLedBrightness == AnimationConstants::kLedMinBrightness)
         {
