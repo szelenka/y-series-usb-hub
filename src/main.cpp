@@ -85,6 +85,8 @@ void setup()
     timerAudio.begin();
     audioPlayer.play(4);
 }
+
+static uint8_t nextSoundIndex = 1;
 void loop()
 {
     // Read sensor inputs
@@ -93,6 +95,17 @@ void loop()
     Log.debug("Sensors: L%d R%d P%d B%d C%d", inputs.sensorLeft, inputs.sensorRight,
               inputs.pirSensor, inputs.buttonRectangle, inputs.buttonCircle);
 
+    static unsigned long lastAudioPlayTime = 0;
+    static unsigned long lastToggleTime = 0;
+
+    // Once every 3 seconds, play a 1-second tone
+    if (inputs.buttonRectangle == LOW && inputs.buttonCircle == LOW) {
+        animation.stop();
+        if (!timerAudio.isPlaying()) {
+            timerAudio.playWAV(nextSoundIndex++);
+            nextSoundIndex = nextSoundIndex % NUM_SOUND_FILES;
+        }
+    }
     // Update animation
     animation.update(inputs);
     animation.performRotate();

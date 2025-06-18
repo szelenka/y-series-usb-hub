@@ -143,7 +143,7 @@ void TimerAudio::playWAV(uint8_t wavIndex)
     m_currentWavData = getWavData(wavIndex);
     m_currentWavSize = getWavSize(wavIndex);
 
-    Log.info("Starting playback: isPlaying=%d, wavSize=%u, wavData=%p", m_isPlaying ? 1 : 0,
+    Log.info("Starting playback %d: isPlaying=%d, wavSize=%u, wavData=%p", wavIndex, m_isPlaying ? 1 : 0,
              m_currentWavSize, m_currentWavData);
 
     // Initialize playback
