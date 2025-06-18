@@ -270,7 +270,8 @@ void Animation::handlePirTriggered()
                                                      AnimationConstants::kMaxMovementDuration);
 
         // Occasionally play a random sound based on probability
-        if (m_audioPlayer != nullptr && random(100) < AnimationConstants::kSoundOnMovementProbability)
+        if (m_audioPlayer != nullptr &&
+            random(100) < AnimationConstants::kSoundOnMovementProbability)
         {
             m_audioPlayer->playRandomSound();
         }

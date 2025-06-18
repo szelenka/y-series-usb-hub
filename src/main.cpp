@@ -99,9 +99,11 @@ void loop()
     static unsigned long lastToggleTime = 0;
 
     // Once every 3 seconds, play a 1-second tone
-    if (inputs.buttonRectangle == LOW && inputs.buttonCircle == LOW) {
+    if (inputs.buttonRectangle == LOW && inputs.buttonCircle == LOW)
+    {
         animation.stop();
-        if (!timerAudio.isPlaying()) {
+        if (!timerAudio.isPlaying())
+        {
             timerAudio.playWAV(nextSoundIndex++);
             nextSoundIndex = nextSoundIndex % NUM_SOUND_FILES;
         }

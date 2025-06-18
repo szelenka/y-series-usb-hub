@@ -87,7 +87,8 @@ constexpr uint8_t kLedMaxBrightness = 128;  ///< Maximum LED brightness (0-255)
 
 /// @name Sound Probability
 /// @{
-constexpr uint8_t kSoundOnMovementProbability = 60;  ///< Probability (0-100) to play sound when movement starts
+constexpr uint8_t kSoundOnMovementProbability =
+    60;  ///< Probability (0-100) to play sound when movement starts
 /// @}
 }  // namespace AnimationConstants
 
