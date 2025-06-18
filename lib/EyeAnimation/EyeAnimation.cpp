@@ -31,13 +31,13 @@ EyeAnimation::EyeAnimation(Adafruit_NeoPixel* pixels)
       m_blinkPhase(0),
       m_blinkProgress(0.0f),
       m_topPixel1(0),
-      m_topPixel2(EyeAnimationConstants::NUM_PIXELS - 1),
+      m_topPixel2(EyeAnimationConstants::NUM_PIXELS_IN_RING - 1),
       m_nextBlinkDelay(0),
       m_blinkCount(0),
       m_lastColorChangeTime(0)
 {
     // Initialize pixel progress and order arrays
-    for (uint8_t i = 0; i < EyeAnimationConstants::NUM_PIXELS; i++)
+    for (uint16_t i = 0; i < EyeAnimationConstants::NUM_PIXELS_IN_RING; i++)
     {
         m_pixelProgress[i] = 0.0f;
         m_pixelOrder[i] = i;  // Default order (will be updated by setTopPixels)
@@ -210,8 +210,8 @@ uint32_t EyeAnimation::wheel(uint8_t pos)
 void EyeAnimation::setTopPixels(uint8_t topPixel1, uint8_t topPixel2)
 {
     // Ensure pixels are within valid range (0-15)
-    m_topPixel1 = topPixel1 % 16;
-    m_topPixel2 = topPixel2 % 16;
+    m_topPixel1 = topPixel1 % EyeAnimationConstants::NUM_PIXELS_IN_RING;
+    m_topPixel2 = topPixel2 % EyeAnimationConstants::NUM_PIXELS_IN_RING;
 
     Log.debug("Set top pixels to %d and %d", m_topPixel1, m_topPixel2);
 
@@ -227,7 +227,7 @@ void EyeAnimation::setTopPixels(uint8_t topPixel1, uint8_t topPixel2)
 void EyeAnimation::calculatePixelOrder()
 {
     // Clear the pixel order array with invalid values
-    for (uint8_t i = 0; i < 16; i++)
+    for (uint16_t i = 0; i < EyeAnimationConstants::NUM_PIXELS_IN_RING; i++)
     {
         m_pixelOrder[i] = 0xFF;
     }
@@ -237,7 +237,7 @@ void EyeAnimation::calculatePixelOrder()
     m_pixelOrder[1] = m_topPixel2;
 
     // Track which pixels have been assigned an order
-    bool used[16] = {false};
+    bool used[EyeAnimationConstants::NUM_PIXELS_IN_RING] = {false};
     used[m_topPixel1] = true;
     used[m_topPixel2] = true;
 
@@ -246,20 +246,20 @@ void EyeAnimation::calculatePixelOrder()
     int16_t rightPos = m_topPixel2;
 
     // Fill in the remaining pixels in wave order
-    for (uint8_t i = 2; i < 16;)
+    for (uint16_t i = 2; i < EyeAnimationConstants::NUM_PIXELS_IN_RING;)
     {
         // Move left position counter-clockwise
-        int16_t newLeftPos = (leftPos - 1 + 16) % 16;
+        int16_t newLeftPos = (leftPos - 1 + EyeAnimationConstants::NUM_PIXELS_IN_RING) % EyeAnimationConstants::NUM_PIXELS_IN_RING;
         while (used[newLeftPos] && newLeftPos != rightPos)
         {
-            newLeftPos = (newLeftPos - 1 + 16) % 16;
+            newLeftPos = (newLeftPos - 1 + EyeAnimationConstants::NUM_PIXELS_IN_RING) % EyeAnimationConstants::NUM_PIXELS_IN_RING;
         }
 
         // Move right position clockwise
-        int16_t newRightPos = (rightPos + 1) % 16;
+        int16_t newRightPos = (rightPos + 1) % EyeAnimationConstants::NUM_PIXELS_IN_RING;
         while (used[newRightPos] && newRightPos != newLeftPos)
         {
-            newRightPos = (newRightPos + 1) % 16;
+            newRightPos = (newRightPos + 1) % EyeAnimationConstants::NUM_PIXELS_IN_RING;
         }
 
         // If we've met in the middle, we're done
@@ -279,7 +279,7 @@ void EyeAnimation::calculatePixelOrder()
             m_pixelOrder[i++] = newLeftPos;
             used[newLeftPos] = true;
 
-            if (i < 16)
+            if (i < EyeAnimationConstants::NUM_PIXELS_IN_RING)
             {
                 m_pixelOrder[i++] = newRightPos;
                 used[newRightPos] = true;
@@ -332,7 +332,7 @@ void EyeAnimation::blink(unsigned long duration)
     m_blinkEndTime = m_blinkStartTime + m_blinkDuration;
 
     // Initialize all pixel progress to 0 (fully on)
-    for (uint8_t i = 0; i < 16; i++)
+    for (uint16_t i = 0; i < EyeAnimationConstants::NUM_PIXELS_IN_RING; i++)
     {
         m_pixelProgress[i] = 0.0f;
     }
@@ -497,9 +497,9 @@ bool EyeAnimation::updateBlink()
     }
 
     // Update all pixels based on their current progress
-    for (int i = 0; i < 16; i++)
+    for (uint16_t i = 0; i < EyeAnimationConstants::NUM_PIXELS_IN_RING; i++)
     {
-        uint8_t pixelIndex = m_pixelOrder[i];
+        uint16_t pixelIndex = m_pixelOrder[i];
 
         // Calculate brightness (invert progress for closing phase)
         float brightness = 1.0f - m_pixelProgress[pixelIndex];
@@ -509,8 +509,8 @@ bool EyeAnimation::updateBlink()
         setPixelColorWithBrightness(pixelIndex, color, brightness * 255);
     }
     // set the center pixel to off when all others are off
-    int centerPixelRef = (m_topPixel1 + numPairs) % 16;
-    setPixelColorWithBrightness(16, m_pixels->getPixelColor(16),
+    uint16_t centerPixelRef = (m_topPixel1 + numPairs) % EyeAnimationConstants::NUM_PIXELS_IN_RING;
+    setPixelColorWithBrightness(EyeAnimationConstants::NUM_PIXELS_IN_RING + 1, m_pixels->getPixelColor(EyeAnimationConstants::NUM_PIXELS_IN_RING + 1),
                                 1.0f - m_pixelProgress[centerPixelRef] * 255);
 
     return true;
