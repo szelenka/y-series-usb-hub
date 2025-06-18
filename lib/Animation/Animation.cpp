@@ -263,17 +263,17 @@ void Animation::handlePirTriggered()
         // This is a new motion detection event
         Log.info("Motion detected, starting rotation");
 
-        // // Play sound effect if audio player is available
-        // if (m_audioPlayer != nullptr)
-        // {
-        //     m_audioPlayer->play(4);  // Play sound effect with ID 4
-        // }
-
         // Reset timers for fresh movement
         m_randomDirectionTimer = 0;
         m_isInMovementCycle = true;
         m_randomRotateTimer = m_currentTime + random(AnimationConstants::kMinMovementDuration,
                                                      AnimationConstants::kMaxMovementDuration);
+
+        // Occasionally play a random sound based on probability
+        if (m_audioPlayer != nullptr && random(100) < AnimationConstants::kSoundOnMovementProbability)
+        {
+            m_audioPlayer->playRandomSound();
+        }
     }
 
     // Update PIR state and reset the inactivity timer

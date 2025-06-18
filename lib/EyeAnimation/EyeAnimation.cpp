@@ -122,9 +122,20 @@ void EyeAnimation::setAllPixelsColor(uint32_t color)
     if (!m_pixels)
         return;
 
-    for (uint16_t i = 0; i < m_pixels->numPixels(); i++)
+    for (uint16_t i = 0; i < EyeAnimationConstants::NUM_PIXELS_IN_RING; i++)
     {
         setPixelColorWithBrightness(i, color, m_brightness);
+    }
+
+    // The colors blue/green are too bright where the center pixel gives off a white glow
+    // alter the colors to provide a more intentional deviation for the center of the eye
+    if (EyeAnimationConstants::COLOR_BLUE == color)
+    {
+        setPixelColorWithBrightness(EyeAnimationConstants::NUM_PIXELS_IN_RING, 0x0000FF, m_brightness);
+    }
+    else
+    {
+        setPixelColorWithBrightness(EyeAnimationConstants::NUM_PIXELS_IN_RING, 0x00FF00, m_brightness);
     }
 }
 
@@ -357,9 +368,9 @@ void EyeAnimation::sequenceBlink()
         {
             // Small delay between blinks in a sequence (100-200ms)
             static unsigned long lastBlinkEnd = 0;
-            if (m_currentTime - lastBlinkEnd >= 150)
+            if (m_currentTime - lastBlinkEnd >= 200)
             {
-                uint8_t duration = random(100, 400);
+                uint8_t duration = random(200, 400);
                 blink(duration);
                 lastBlinkEnd = m_currentTime + duration;  // Update when this blink will end
             }

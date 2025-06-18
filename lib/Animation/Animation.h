@@ -84,6 +84,11 @@ constexpr uint32_t kLedFadeInterval = 30;   ///< Time (ms) between fade steps
 constexpr uint8_t kLedMinBrightness = 64;   ///< Minimum LED brightness (0-255)
 constexpr uint8_t kLedMaxBrightness = 128;  ///< Maximum LED brightness (0-255)
 /// @}
+
+/// @name Sound Probability
+/// @{
+constexpr uint8_t kSoundOnMovementProbability = 60;  ///< Probability (0-100) to play sound when movement starts
+/// @}
 }  // namespace AnimationConstants
 
 /**
