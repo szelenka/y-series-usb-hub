@@ -90,7 +90,8 @@ void loop()
     // Read sensor inputs
     AnimationInputs inputs = readInputs(customPins);
 
-    Log.debug("Sensors: L%d R%d P%d B%d C%d", inputs.sensorLeft, inputs.sensorRight, inputs.pirSensor, inputs.buttonRectangle, inputs.buttonCircle);
+    Log.debug("Sensors: L%d R%d P%d B%d C%d", inputs.sensorLeft, inputs.sensorRight,
+              inputs.pirSensor, inputs.buttonRectangle, inputs.buttonCircle);
 
     // Update animation
     animation.update(inputs);

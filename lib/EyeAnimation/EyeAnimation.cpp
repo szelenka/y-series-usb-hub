@@ -249,10 +249,12 @@ void EyeAnimation::calculatePixelOrder()
     for (uint16_t i = 2; i < EyeAnimationConstants::NUM_PIXELS_IN_RING;)
     {
         // Move left position counter-clockwise
-        int16_t newLeftPos = (leftPos - 1 + EyeAnimationConstants::NUM_PIXELS_IN_RING) % EyeAnimationConstants::NUM_PIXELS_IN_RING;
+        int16_t newLeftPos = (leftPos - 1 + EyeAnimationConstants::NUM_PIXELS_IN_RING) %
+                             EyeAnimationConstants::NUM_PIXELS_IN_RING;
         while (used[newLeftPos] && newLeftPos != rightPos)
         {
-            newLeftPos = (newLeftPos - 1 + EyeAnimationConstants::NUM_PIXELS_IN_RING) % EyeAnimationConstants::NUM_PIXELS_IN_RING;
+            newLeftPos = (newLeftPos - 1 + EyeAnimationConstants::NUM_PIXELS_IN_RING) %
+                         EyeAnimationConstants::NUM_PIXELS_IN_RING;
         }
 
         // Move right position clockwise
@@ -510,8 +512,10 @@ bool EyeAnimation::updateBlink()
     }
     // set the center pixel to off when all others are off
     uint16_t centerPixelRef = (m_topPixel1 + numPairs) % EyeAnimationConstants::NUM_PIXELS_IN_RING;
-    setPixelColorWithBrightness(EyeAnimationConstants::NUM_PIXELS_IN_RING + 1, m_pixels->getPixelColor(EyeAnimationConstants::NUM_PIXELS_IN_RING + 1),
-                                1.0f - m_pixelProgress[centerPixelRef] * 255);
+    setPixelColorWithBrightness(
+        EyeAnimationConstants::NUM_PIXELS_IN_RING + 1,
+        m_pixels->getPixelColor(EyeAnimationConstants::NUM_PIXELS_IN_RING + 1),
+        1.0f - m_pixelProgress[centerPixelRef] * 255);
 
     return true;
 }

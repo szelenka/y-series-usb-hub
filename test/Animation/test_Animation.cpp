@@ -75,11 +75,6 @@ void test_set_rotation_direction_random()
     // Create mock objects
     const AnimationPins pins = AnimationPins();
 
-    When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str); });
-    When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str) + 1; });
-
     // Mock random number generator
     When(OverloadedMethod(ArduinoFake(), random, long(long, long)))
         .AlwaysDo(
@@ -120,18 +115,18 @@ void test_perform_rotate()
 
     // Create mock objects
     const AnimationPins pins = AnimationPins();
-    Log.setLogLevel(LogLevel::NONE);
 
     // Mock random number generator to return a specific speed
-    When(OverloadedMethod(ArduinoFake(), random, long(long, long)))
+    When(OverloadedMethod(ArduinoFake(), random, long(long)))
         .AlwaysDo(
-            [](long min, long max)
+            [](long max)
             {
                 return 200;  // Return a speed value
             });
     When(Method(ArduinoFake(), digitalWrite)).AlwaysReturn();
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
     When(Method(ArduinoFake(), millis)).AlwaysReturn(1000);
+    When(OverloadedMethod(ArduinoFake(), random, long(long, long))).AlwaysReturn(0);
     When(Method(audioPlayerMock, play)).AlwaysReturn(true);
 
     // Create animation object
@@ -166,15 +161,11 @@ void test_set_rotation_direction_with_sensor_trip()
     // Create mock objects
     const AnimationPins pins = AnimationPins();
 
-    When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str); });
-    When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str) + 1; });
     // random not needed for this test
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
 
     Animation i(nullptr, nullptr, pins);
-    Log.setLogLevel(LogLevel::NONE);
+
     uint16_t currentTime = 1000;
 
     // Set initial state
@@ -218,14 +209,11 @@ void test_perform_rotate_pir_not_triggered_no_timeout()
     // Create mock objects
     const AnimationPins pins = AnimationPins();
 
-    When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str); });
-    When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str) + 1; });
+    // random not needed for this test
+    When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
 
     Animation i(nullptr, nullptr, pins);
-    Log.setLogLevel(LogLevel::NONE);
 
     // Set initial state
     i.setMotorDirection(MotorDirection::Right);
@@ -258,10 +246,7 @@ void test_perform_rotate_pir_not_triggered_timeout()
     // Create mock objects
     const AnimationPins pins = AnimationPins();
 
-    When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str); });
-    When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str) + 1; });
+    // random not needed for this test
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
     When(Method(audioPlayerMock, play)).AlwaysReturn(true);
 
@@ -299,12 +284,9 @@ void test_updateSound()
 {
     std::cout << "  Running test_updateSound()" << std::endl;
     // Create mock objects
+
     Mock<AudioPlayer> audioPlayerMock;
     const AnimationPins pins = AnimationPins();
-    When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str); });
-    When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str) + 1; });
     // playRandomSound and update are the key methods
     When(Method(audioPlayerMock, playRandomSound)).AlwaysReturn();
     When(Method(audioPlayerMock, update)).AlwaysReturn();
@@ -346,6 +328,7 @@ void test_rotate()
     std::cout << "  Running test_rotate()" << std::endl;
 
     // Setup mocks
+
     When(Method(ArduinoFake(), pinMode)).AlwaysReturn();
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
 
@@ -354,7 +337,6 @@ void test_rotate()
 
     // Create animation object
     Animation animation(nullptr, nullptr, pins);
-    Log.setLogLevel(LogLevel::NONE);
 
     // Test 1: Right direction
     {
@@ -413,10 +395,6 @@ void test_perform_rotate_backward_duration()
     const AnimationPins pins = AnimationPins();
 
     // Setup mocks
-    When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str); });
-    When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str) + 1; });
     // When(Method(audioPlayerMock, play)).AlwaysReturn(true);
     // When(Method(audioPlayerMock, isPlaying)).AlwaysReturn(false);
     // When(Method(audioPlayerMock, stop)).AlwaysReturn();
@@ -462,10 +440,6 @@ void test_set_rotation_direction_bias()
     const AnimationPins pins = AnimationPins();
 
     // Setup mocks
-    When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str); });
-    When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str) + 1; });
     When(Method(ArduinoFake(), analogWrite)).AlwaysReturn();
 
     // Test cases for different bias scenarios
@@ -588,14 +562,11 @@ void test_update()
 void test_handle_pir_triggered_with_stopped_motor()
 {
     std::cout << "  Running test_handle_pir_triggered_with_stopped_motor()" << std::endl;
+
     Mock<AudioPlayer> audioPlayerMock;
     // Create mock objects
     Animation obj(nullptr, &audioPlayerMock.get(), AnimationPins());
     Mock<Animation> spy(obj);
-    When(OverloadedMethod(ArduinoFake(Stream), print, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str); });
-    When(OverloadedMethod(ArduinoFake(Stream), println, size_t(const char*)))
-        .AlwaysDo([](const char* str) { return strlen(str) + 1; });
     When(OverloadedMethod(ArduinoFake(), random, long(long, long)))
         .AlwaysDo(
             [](long min, long max)

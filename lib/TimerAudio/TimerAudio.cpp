@@ -104,7 +104,7 @@ void TimerAudio::setupPWM()
 void TimerAudio::setupTimer()
 {
 #ifdef ARDUINO_ARCH_RP2040
-Log.info("Setting up timer with sample rate %lu", m_sampleRate);
+    Log.info("Setting up timer with sample rate %lu", m_sampleRate);
 
     // Calculate timer interval for sample rate
     // Timer runs at 1MHz, so interval = 1,000,000 / sample_rate
@@ -114,14 +114,14 @@ Log.info("Setting up timer with sample rate %lu", m_sampleRate);
     bool result = add_repeating_timer_us(
         -timerInterval,
         [](repeating_timer_t* rt) -> bool
-    {
-        if (TimerAudio::s_instance) {
-            s_instance->updateSample();
-        }
-        return true;
-    },
-    NULL, 
-    &m_timer);
+        {
+            if (TimerAudio::s_instance)
+            {
+                s_instance->updateSample();
+            }
+            return true;
+        },
+        NULL, &m_timer);
     Log.info("Timer setup result: %d %d", result, timerInterval);
 
 #endif
@@ -143,19 +143,19 @@ void TimerAudio::playWAV(uint8_t wavIndex)
     m_currentWavData = getWavData(wavIndex);
     m_currentWavSize = getWavSize(wavIndex);
 
-    Log.info("Starting playback: isPlaying=%d, wavSize=%u, wavData=%p", 
-        m_isPlaying ? 1 : 0, m_currentWavSize, m_currentWavData);
-    
+    Log.info("Starting playback: isPlaying=%d, wavSize=%u, wavData=%p", m_isPlaying ? 1 : 0,
+             m_currentWavSize, m_currentWavData);
+
     // Initialize playback
     m_currentPosition = 0;
     m_isPlaying = false;
 
     // CRITICAL: Verify data exists before attempting to play
-    if (!m_currentWavData || m_currentWavSize == 0) {
+    if (!m_currentWavData || m_currentWavSize == 0)
+    {
         Log.error("Invalid WAV data or size for index %d", wavIndex);
         return;  // Don't proceed with invalid data
     }
-    
 
     // Skip WAV header if present
     if (m_skipWavHeader && m_currentWavSize > TimerAudioConstants::WAV_HEADER_SIZE)
@@ -221,7 +221,8 @@ void TimerAudio::updateSample()
     }
 
     // Add bounds safety check
-    if (m_currentPosition < 0 || m_currentPosition >= m_currentWavSize) {
+    if (m_currentPosition < 0 || m_currentPosition >= m_currentWavSize)
+    {
         stop();
         return;
     }

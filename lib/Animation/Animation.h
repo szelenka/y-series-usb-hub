@@ -66,7 +66,8 @@ constexpr uint32_t kMaxDirectionTime =
 /// @name PIR Sensor Timing
 /// @{
 constexpr uint32_t kInactivityTimeout = 5000;  ///< Time (ms) of inactivity before stopping
-constexpr uint32_t kEyeResetInterval = 300000;   ///< Time (ms) before eye animation reset (5 minutes)
+constexpr uint32_t kEyeResetInterval =
+    300000;  ///< Time (ms) before eye animation reset (5 minutes)
 /// @}
 
 /// @name Direction Bias

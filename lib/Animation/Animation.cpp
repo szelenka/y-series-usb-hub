@@ -419,7 +419,8 @@ void Animation::updateLedFade()
         {
             m_currentLedBrightness =
                 std::min(AnimationConstants::kLedMaxBrightness,
-                    static_cast<uint8_t>(m_currentLedBrightness + AnimationConstants::kLedFadeIncrement));
+                         static_cast<uint8_t>(m_currentLedBrightness +
+                                              AnimationConstants::kLedFadeIncrement));
         }
         if (m_currentLedBrightness == AnimationConstants::kLedMaxBrightness)
         {
@@ -433,7 +434,8 @@ void Animation::updateLedFade()
         {
             m_currentLedBrightness =
                 std::max(AnimationConstants::kLedMinBrightness,
-                     static_cast<uint8_t>(m_currentLedBrightness - AnimationConstants::kLedFadeIncrement));
+                         static_cast<uint8_t>(m_currentLedBrightness -
+                                              AnimationConstants::kLedFadeIncrement));
         }
         if (m_currentLedBrightness == AnimationConstants::kLedMinBrightness)
         {

@@ -40,7 +40,7 @@ constexpr uint32_t COLOR_BLUE = 0x21DDF5;   ///< Blue eye
 constexpr uint32_t COLOR_GREEN = 0x0BBD39;  ///< Green eye
 /// @}
 
-constexpr uint16_t NUM_PIXELS_IN_RING = 16;                    // Number of LEDs in the eye ring
+constexpr uint16_t NUM_PIXELS_IN_RING = 16;            // Number of LEDs in the eye ring
 constexpr uint8_t DEFAULT_BRIGHTNESS = 255;            // Maximum brightness
 constexpr unsigned long DEFAULT_BLINK_DURATION = 300;  // ms for a complete blink
 constexpr unsigned long COLOR_CHANGE_DELAY = 1000;     // ms between color changes
