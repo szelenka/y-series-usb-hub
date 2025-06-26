@@ -32,6 +32,16 @@ An interactive animatronic controller for the Y-Series USB Hub, designed to hold
 - 2x Push buttons
 - Audio amplifier and speaker
 
+A complete bill of materials with quantities and descriptions is available in the [BOM file](docs/bom.csv).
+
+## Circuit Diagram
+
+A detailed circuit diagram of the hardware connections is available in the docs folder:
+
+![Y-Series USB Hub Circuit Diagram](docs/y-series-usb-hub_bb.png)
+
+This diagram shows all component connections and can be used as a reference for assembly.
+
 ## Pin Configuration
 
 | Function             | Pin  | Notes                           |
@@ -184,4 +194,8 @@ For commercial use, please contact the author for licensing options.
 
 - [LEGO Lightsabers](https://github.com/szelenka/lightsaber)
 - [PlatformIO](https://platformio.org/)
-- [Adafruit KB2040](https://www.adafruit.com/product/5302)
+- [Adafruit KB2040](https://learn.adafruit.com/adafruit-kb2040)
+- [Adafruit CH334F](https://learn.adafruit.com/adafruit-ch334f-mini-4-port-usb-hub-breakout)
+- [Adafruit PAM8302](https://learn.adafruit.com/adafruit-pam8302-mono-2-5w-class-d-audio-amplifier)
+- [Adafruit DRV8833](https://learn.adafruit.com/adafruit-drv8833-dc-stepper-motor-driver-breakout-board)
+- [Adafruit Neopixel](https://learn.adafruit.com/adafruit-neopixel-uberguide)
