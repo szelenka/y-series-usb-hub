@@ -32,7 +32,7 @@ An interactive animatronic controller for the Y-Series USB Hub, designed to hold
 - 2x Push buttons
 - Audio amplifier and speaker
 
-A complete bill of materials with quantities and descriptions is available in the [BOM file](docs/bom.csv).
+A complete bill of materials with quantities and descriptions is available in the [BOM file](docs/Y-Series%20Trainer%20USB%20Hub%20-%20Bill%20of%20Materials.csv).
 
 ## Circuit Diagram
 
