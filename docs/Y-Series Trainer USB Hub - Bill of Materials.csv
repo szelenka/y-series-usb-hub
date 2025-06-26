@@ -1,6 +1,6 @@
 Item,Section,Price,Package Quantity,Item Quantity,Total Price,Store,Reference
-"Zap 30-minute Z-poxy, 8 oz.",Adhesive,$21.99,1,1,$21.99,Rockler Woodworking,https://www.rockler.com/zap-30-minute-z-poxy-8-oz
 Glue Stick,Adhesive,$8.45,100,2,$8.45,Lowes Home Improvement,https://www.lowes.com/pd/SUREBONDER-All-Purpose-Stik-All-Temperature-Mini-Glue-Sticks-100-4-Length/5012905053
+"Zap 30-minute Z-poxy, 8 oz.",Adhesive,$21.99,1,1,$21.99,Rockler Woodworking,https://www.rockler.com/zap-30-minute-z-poxy-8-oz
 "2 Pack 3"" Lazy Susan Turntable 200 LBS pounds Steel Ball Bearing Rotating Tray Strong Sturdy Table Cabinet Low Profile",Bearings,$6.35,2,1,$6.35,Amazon,https://www.amazon.com/dp/B08TLJTFPM
 Bearing Balls (15mm),Bearings,$9.29,25,6,$9.29,Amazon,https://www.amazon.com/dp/B0B5PMHFRW
 Adafruid TB6612 1.2A DC/Stepper Motor Driver Breakout Board,Electronics,$6.95,1,1,$6.95,Adafruit,https://www.adafruit.com/product/2448
@@ -34,9 +34,10 @@ M3x3 Heat Set Insert,Hardware,$10.00,100,37,$10.00,CNCKitchen,https://cnckitchen
 M3x30 Socket Head Screw,Hardware,$0.00,15,2,$0.00,Amazon,https://www.amazon.com/dp/B0BMQ5Z96H
 M3x5 Tapered Head Screw,Hardware,$6.59,50,8,$6.59,Amazon,https://www.amazon.com/Countersunk-Machine-Screws-Phillips-Stainless/dp/B0CT4LLVVX/
 M3x8 Socket Head Screw,Hardware,$0.00,20,3,$0.00,Amazon,https://www.amazon.com/dp/B0BMQ5Z96H
+M5x150 Steel Rod,Hardware,$6.19,5,4,$6.19,Amazon,https://www.amazon.com/dp/B0D5D5KDRG
+Bambu Lab PETG HF (1kg),Material,$19.99,1,2,$39.98,Bambu Lab,https://us.store.bambulab.com/products/petg-hf
 Mylar Sheet (4mils/0.1mm),Material,$6.99,15,1,$6.99,Amazon,https://www.amazon.com/Transparency-Template-Material-Stencils-Cutting/dp/B08J8BLJMK
 Tracing Paper Sheet,Material,$5.99,100,1,$5.99,Amazon,https://www.amazon.com/Tracing-Paper-Drawing-100-Sheets/dp/B0CDTSZLM8
-Bambu Lab PETG HF (1kg),Material,$19.99,1,2,$39.98,Bambu Lab,https://us.store.bambulab.com/products/petg-hf
 "DC 6V Gear Motor, 14MM N20 Micro Metal Motor for Robot DIY (60RPM)",Motor,$11.30,1,1,$11.30,Amazon,https://www.amazon.com/dp/B07L2S647Z
 "Dupi-Color 22 WA9659 Bahama Blue Metallic, 8oz",Paint,$17.49,1,1,$17.49,Advanced Auto Parts,https://shop.advanceautoparts.com/p/duplicolor-perfect-match-touch-up-spray-paint-bahama-blue-22-wa9656-8-oz-bgm0533/99985079-P
 "Dupi-Color BHA0987 Alabaster Silver Metallic, 8oz",Paint,$16.99,1,1,$16.99,AutoZone,https://www.autozone.com/paint-and-body/touch-up-paint/p/dupli-color-perfect-match-touch-up-paint-bha0987/59788_0_0
