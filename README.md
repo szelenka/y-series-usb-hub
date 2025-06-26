@@ -4,10 +4,12 @@
 
 An interactive animatronic controller for the Y-Series USB Hub, designed to hold 4 [LEGO Lightsabers](https://github.com/szelenka/lightsaber). This project implements motorized movement, LED animations, and sound effects to create an engaging interactive experience.
 
-3D Print files are available here:
-https://www.printables.com/model/1338427-y-series-trainer-usb-hub
-
 ![Y-Series USB Hub](docs/Assembly%20v42.png)
+
+
+3D Print files are available here:
+
+https://www.printables.com/model/1338427-y-series-trainer-usb-hub
 
 ## Features
 
